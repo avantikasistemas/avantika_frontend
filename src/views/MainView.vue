@@ -32,8 +32,8 @@
             <tbody>
               <tr v-for="email in email_list" :key="email.id" @click="selectEmail(email)" :class="{ 'selected-row': email.id === selectedEmailId }">
                 <td>{{ email.id }}</td>
-                <td>{{ email.remitente }}</td>
-                <td>{{ truncateAsunto(email.asunto) }}</td>
+                <td :title="email.remitente">{{ email.remitente }}</td>
+                <td :title="email.asunto">{{ truncateAsunto(email.asunto) }}</td>
                 <td>{{ email.fecha_hora }}</td>
                 <td>{{ email.seguimiento }}</td>
               </tr>
