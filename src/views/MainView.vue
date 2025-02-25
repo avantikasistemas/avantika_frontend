@@ -174,9 +174,9 @@
     <!-- Overlay de carga -->
     <div v-if="loading" class="loading-overlay">
         <div class="spinner-border text-light" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <span class="visually-hidden"></span>
         </div>
-        <p class="mt-2 text-light">Procesando la información, por favor espere...</p>
+        <p class="mt-2 text-light">{{ loading_msg }}</p>
     </div>
 
 </template>
@@ -233,12 +233,14 @@ const modalErrorInstance = ref(null);
 const modalPreguntaInstance = ref(null);
 const errorMsg = ref('');
 const loading = ref(false);
+const loading_msg = ref('');
 
 
 // ✅ Función para realizar carga de pantalla de espera.
 const handleGetEmails = async () => {
   try {
     loading.value = true; // Mostrar el spinner antes de la llamada API
+    loading_msg.value = 'Extrayendo correos, por favor espere...';
       await get_emails(); // Llama a la función que obtiene los correos
   } catch (error) {
       console.error('Error al extraer correos:', error);
@@ -250,6 +252,7 @@ const handleGetEmails = async () => {
 const handleGetEstados = async () => {
   try {
     loading.value = true; // Mostrar el spinner antes de la llamada API
+    loading_msg.value = 'Actualizando estados, por favor espere...';
       await actualizarEstadoSeguimiento(); // Llama a la función que obtiene los correos
   } catch (error) {
       console.error('Error al extraer correos:', error);
