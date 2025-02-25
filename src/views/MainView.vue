@@ -98,7 +98,7 @@
           </table>
         </div>
 
-        <div class="mt-3 d-flex gap-2 align-items-center entrega-container">
+        <div class="d-flex gap-2 align-items-center entrega-container">
           <label class="label-small">Oportunidad en la entrega:</label>
           <input type="text" class="form-control mb-2 input-small" v-model="dias_oportunidad" readonly/>
           <label class="label-small">Número de días de entrega:</label>
@@ -107,7 +107,7 @@
 
         <div class="mt-3">
           <h6 class="titulo-seguimiento">SEGUIMIENTOS A LA COTIZACIÓN ANTERIOR</h6>
-          <textarea class="form-control mt-2 area-seguimiento" v-model="seguimiento" readonly style="height: 150px; max-height: 150px;"></textarea>
+          <textarea class="form-control mt-2 area-seguimiento" v-model="seguimiento" readonly></textarea>
         </div>
         <div class="d-flex gap-2 w-100">
           <button class="btn btn-danger btn-sm w-50 btn-limpiar" @click="limpiarCampos">Limpiar</button>
@@ -648,10 +648,11 @@ onMounted(() => {
 }
 
 .titulo-principal {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.2rem;
   color: #333;
   margin: 0;
+  margin-left: 10px;
+  margin-top: 10px;
 }
 
 .lbl-dates{
@@ -800,7 +801,9 @@ label {
     font-size: medium;
 }
 .area-seguimiento{
-    font-size: 14px;
+    height: 120px; 
+    max-height: 120px;
+    font-size: 12px;
 }
 
 .btn-limpiar {
@@ -811,11 +814,11 @@ label {
     background-color: #f84f4f;
 }
 .btn-guardar {
-    background-color: #2778bf;
+    background-color: green;
     color: white;
 }
 .btn-guardar:hover {
-    background-color: #5eaef5;
+    background-color: #01b652;
 }
 
 button {
