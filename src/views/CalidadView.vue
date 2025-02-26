@@ -112,6 +112,21 @@
           <input type="text" class="form-control mb-2 input-small" v-model="dias_entrega" readonly/>
         </div>
 
+        <hr>
+        <h6 class="titulo-calidad">Desvío de Calidad</h6>
+        <div class="d-flex gap-2 align-items-center entrega-container">
+          <label class="label-small">Item revisado que cumple criterio:</label>
+          <input type="number" class="form-control mb-2 input-small" v-model="item_revisado_cumple" />
+          <label class="label-small">Item revisado (Muestra):</label>
+          <input type="number" class="form-control mb-2 input-small" v-model="item_revisado_muestra" />
+          <span>{{ porcentajeCalculo }} %</span>
+        </div>
+
+        <div class="mt-3">
+          <label>Desvío de Calidad:</label><textarea class="form-control mt-2" v-model="desvio_calidad"></textarea>
+        </div>
+
+
         <div class="mt-3">
           <h6 class="titulo-seguimiento">Seguimientos a la Cotización Anterior</h6>
           <textarea class="form-control mt-2 area-seguimiento" v-model="seguimiento" readonly></textarea>
@@ -191,7 +206,7 @@
 <script setup>
 
 import DOMPurify from 'dompurify';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
 import logo from '@/assets/logo.png';
@@ -231,6 +246,7 @@ const items_cotizados = ref('');
 
 const motivo_no_cotizacion = ref('');
 const desvio_oportunidad = ref('');
+const desvio_calidad = ref('');
 
 const numero_cotizacion = ref('');
 const dias_oportunidad = ref('');
@@ -440,6 +456,7 @@ const limpiarCampos = () => {
   desvio_oportunidad.value = '';
   item_revisado_cumple.value = 0;
   item_revisado_muestra.value = 0;
+  desvio_calidad.value = '';
 };
 // ✅ Función para guardar una cotización
 const guardarCotizacion = async () => {
@@ -480,7 +497,11 @@ const guardarCotizacion = async () => {
             oportunidad_entrega: dias_oportunidad.value,
             dias_entrega: dias_entrega.value,
             motivo_no_cotizacion: motivo_no_cotizacion.value,
-            desvio_oportunidad: desvio_oportunidad.value
+            desvio_oportunidad: desvio_oportunidad.value,
+            item_revisado_cumple: item_revisado_cumple.value,
+            item_revisado_muestra: item_revisado_muestra.value,
+            porcentaje_muestra: porcentajeCalculo.value,
+            desvio_calidad: desvio_calidad.value
           },
           {
               headers: {
@@ -542,7 +563,11 @@ const actualizarCotizacion = async () => {
             oportunidad_entrega: dias_oportunidad.value,
             dias_entrega: dias_entrega.value,
             motivo_no_cotizacion: motivo_no_cotizacion.value,
-            desvio_oportunidad: desvio_oportunidad.value
+            desvio_oportunidad: desvio_oportunidad.value,
+            item_revisado_cumple: item_revisado_cumple.value,
+            item_revisado_muestra: item_revisado_muestra.value,
+            porcentaje_muestra: porcentajeCalculo.value,
+            desvio_calidad: desvio_calidad.value
           },
           {
               headers: {
@@ -624,6 +649,16 @@ const cargarDatosCotizacion = async () => {
         nuevaFechaVenc.value = response.data.data.nueva_fecha_vencimiento;
         motivo_no_cotizacion.value = response.data.data.motivo_no_cotizacion;
         desvio_oportunidad.value = response.data.data.desvio_oportunidad;
+        item_revisado_cumple.value = response.data.data.item_revisado_cumple;
+        item_revisado_muestra.value = response.data.data.item_revisado_muestra;
+        desvio_calidad.value = response.data.data.desvio_calidad;
+
+        if (item_revisado_cumple.value == null){
+          item_revisado_cumple.value = 0;
+        }
+        if (item_revisado_muestra.value == null){
+          item_revisado_muestra.value = 0;
+        }
     }
 
   } catch (error) {
@@ -633,10 +668,10 @@ const cargarDatosCotizacion = async () => {
   }
 };
 // ✅ Función para calcular porcentaje de item de muestra.
-// const porcentajeCalculo = computed(() => {
-//   if (item_revisado_muestra.value === 0) return 0; // Evitar división por 0
-//   return ((item_revisado_cumple.value / item_revisado_muestra.value) * 100).toFixed(0); // Calcula sin redondear decimales
-// });
+const porcentajeCalculo = computed(() => {
+  if (item_revisado_muestra.value === 0) return 0; // Evitar división por 0
+  return ((item_revisado_cumple.value / item_revisado_muestra.value) * 100).toFixed(0); // Calcula sin redondear decimales
+});
 
 // Esta funcion esta pendiente en caso que cambia el estado
 watch(selectEstados, (nuevoValor) => {
