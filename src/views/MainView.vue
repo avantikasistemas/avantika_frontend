@@ -59,6 +59,13 @@
             <option disabled>Seleccione Estado</option>
             <option v-for="estado in lista_estados" :value="estado">{{ estado }}</option>
           </select>
+          <label  v-if="selectEstados === 'NO SE COTIZA'">Motivo de no cotización:</label>
+          <textarea 
+            v-if="selectEstados === 'NO SE COTIZA'" 
+            class="form-control mt-2" 
+            v-model="motivo_no_cotizacion">
+          </textarea>
+          <label>Desvío de Oportunidad:</label><textarea class="form-control mt-2" v-model="desvio_oportunidad"></textarea>
           <hr>
         </div>
       </div>
@@ -184,10 +191,11 @@
 <script setup>
 
 import DOMPurify from 'dompurify';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { Modal } from 'bootstrap';
 import logo from '@/assets/logo.png';
+import apiUrl from "../../config.js";
 
 // Obtener la fecha actual y restarle un mes
 const fechaInicio = ref(null);
@@ -220,6 +228,9 @@ const fecha_entrega = ref('');
 const usuario_creador_cotizacion = ref('');
 const pesos_cotizados = ref('');
 const items_cotizados = ref('');
+
+const motivo_no_cotizacion = ref('');
+const desvio_oportunidad = ref('');
 
 const numero_cotizacion = ref('');
 const dias_oportunidad = ref('');
@@ -270,8 +281,7 @@ const get_emails = async () => {
     fechaFinFormateada.value = `${dayff}-${monthff}-${yearff}`;
 
     const response = await axios.post(
-        // `${apiUrl}/params/get_clients`,
-        `http://130.1.64.105:8000/get_emails`,
+        `${apiUrl}/get_emails`,
         {
           start_date: fechaInicioFormateada.value,
           end_date: fechaFinFormateada.value,
@@ -298,8 +308,7 @@ const get_info_tercero = async () => {
   try {
 
     const response = await axios.post(
-        // `${apiUrl}/params/get_clients`,
-        `http://130.1.64.105:8000/get_tercero_x_nit`,
+        `${apiUrl}/get_tercero_x_nit`,
         {
           nit: nit.value,
           fecha: selectedFechaHora.value
@@ -348,8 +357,7 @@ const selectEmail = async (email) => {
 const cargarDatos = async () => {
   try {
     const response = await axios.post(
-        // `${apiUrl}/params/get_clients`,
-        `http://130.1.64.105:8000/get_tipos_estado`, {},
+        `${apiUrl}/get_tipos_estado`, {},
         {
             headers: {
                 Accept: "application/json",
@@ -371,8 +379,7 @@ const cargarDatos = async () => {
 const consultarCotizacion = async () => {
   try {
     const response = await axios.post(
-        // `${apiUrl}/params/get_clients`,
-        `http://130.1.64.105:8000/consultar_cotizacion`, 
+        `${apiUrl}/consultar_cotizacion`, 
         {
           numero_cotizacion: numero_cotizacion.value,
           fecha: selectedFechaHora.value,
@@ -401,7 +408,7 @@ const consultarCotizacion = async () => {
 // ✅ Función para calcular la fecha hace un mes
 const getFechaUnMesAtras = () => {
   const hoy = new Date();
-  hoy.setMonth(hoy.getMonth() - 1); // Restar un mes
+  hoy.setDate(1); // Establecer el día en 1
   return hoy.toISOString().split('T')[0]; // Formato YYYY-MM-DD
 };
 // ✅ Función para obtener la fecha actual
@@ -425,6 +432,9 @@ const limpiarCampos = () => {
   dias_entrega.value = '';
   datos_cotizacion_list.value = '';
   seguimiento.value = '';
+  selectedBody.value = '';
+  motivo_no_cotizacion.value = '';
+  desvio_oportunidad.value = '';
 };
 // ✅ Función para guardar una cotización
 const guardarCotizacion = async () => {
@@ -441,8 +451,7 @@ const guardarCotizacion = async () => {
       }
 
       const response = await axios.post(
-        // `${apiUrl}/params/get_clients`,
-        `http://130.1.64.105:8000/guardar_cotizacion`,
+        `${apiUrl}/guardar_cotizacion`,
           {
             email_sender: selectedCorreo.value,
             email_subject: selectedAsunto.value,
@@ -464,7 +473,9 @@ const guardarCotizacion = async () => {
             pesos_cotizados: pesos_cotizados.value,
             items_cotizados: items_cotizados.value,
             oportunidad_entrega: dias_oportunidad.value,
-            dias_entrega: dias_entrega.value
+            dias_entrega: dias_entrega.value,
+            motivo_no_cotizacion: motivo_no_cotizacion.value,
+            desvio_oportunidad: desvio_oportunidad.value
           },
           {
               headers: {
@@ -502,8 +513,7 @@ const actualizarCotizacion = async () => {
       }
 
       const response = await axios.post(
-        // `${apiUrl}/params/get_clients`,
-        `http://130.1.64.105:8000/actualizar_cotizacion`,
+        `${apiUrl}/actualizar_cotizacion`,
           {
             email_sender: selectedCorreo.value,
             email_subject: selectedAsunto.value,
@@ -525,7 +535,9 @@ const actualizarCotizacion = async () => {
             pesos_cotizados: pesos_cotizados.value,
             items_cotizados: items_cotizados.value,
             oportunidad_entrega: dias_oportunidad.value,
-            dias_entrega: dias_entrega.value
+            dias_entrega: dias_entrega.value,
+            motivo_no_cotizacion: motivo_no_cotizacion.value,
+            desvio_oportunidad: desvio_oportunidad.value
           },
           {
               headers: {
@@ -551,8 +563,7 @@ const actualizarEstadoSeguimiento = async () => {
 
   try {
       const response = await axios.post(
-        // `${apiUrl}/params/get_clients`,
-        `http://130.1.64.105:8000/actualizar_estado_seguimiento`,
+        `${apiUrl}/actualizar_estado_seguimiento`,
           {
             email_list: email_list.value
           },
@@ -579,8 +590,7 @@ const cargarDatosCotizacion = async () => {
 
   try {
     const response = await axios.post(
-      // `${apiUrl}/params/get_clients`,
-      `http://130.1.64.105:8000/cargar_datos_cotizacion`,
+      `${apiUrl}/cargar_datos_cotizacion`,
         {
           email_sender: selectedCorreo.value,
           email_subject: selectedAsunto.value,
@@ -607,6 +617,8 @@ const cargarDatosCotizacion = async () => {
         itemsCotizar.value = response.data.data.items_a_cotizar;
         numero_cotizacion.value = response.data.data.numero_cotizacion;
         nuevaFechaVenc.value = response.data.data.nueva_fecha_vencimiento;
+        motivo_no_cotizacion.value = response.data.data.motivo_no_cotizacion;
+        desvio_oportunidad.value = response.data.data.desvio_oportunidad;
     }
 
   } catch (error) {
@@ -615,6 +627,13 @@ const cargarDatosCotizacion = async () => {
     errorMsg.value = error.response.data.message;
   }
 };
+
+// Esta funcion esta pendiente en caso que cambia el estado
+watch(selectEstados, (nuevoValor) => {
+  if (nuevoValor !== 'NO SE COTIZA') {
+    motivo_no_cotizacion.value = ''; // Limpia el campo si cambia la opción
+  }
+});
 
 // Código que se ejecuta al montar el componente
 onMounted(() => {
@@ -776,7 +795,7 @@ label {
   border-radius: 5px;
   padding: 10px;
   overflow-y: auto;
-  height: 600px;
+  height: 650px;
   background-color: #f9f9f9;
   white-space: normal;
 }
