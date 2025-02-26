@@ -235,7 +235,6 @@ const errorMsg = ref('');
 const loading = ref(false);
 const loading_msg = ref('');
 
-
 // ✅ Función para realizar carga de pantalla de espera.
 const handleGetEmails = async () => {
   try {
@@ -607,6 +606,7 @@ const cargarDatosCotizacion = async () => {
         fechaVenc.value = response.data.data.fecha_vencimiento;
         itemsCotizar.value = response.data.data.items_a_cotizar;
         numero_cotizacion.value = response.data.data.numero_cotizacion;
+        nuevaFechaVenc.value = response.data.data.nueva_fecha_vencimiento;
     }
 
   } catch (error) {
