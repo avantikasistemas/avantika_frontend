@@ -53,7 +53,7 @@
               >
               <ul v-if="mostrarLista && terceros_list.length" class="dropdown-list">
                   <li v-for="ter in terceros_list" :key="ter.nit" @mousedown="seleccionarTercero(ter)">
-                      {{ ter.nit }} - {{ ter.nombres }}
+                      {{ ter.nit }} - {{ ter.nombres }} - {{ ter.ejecutivo }}
                   </li>
               </ul>
             </div>
