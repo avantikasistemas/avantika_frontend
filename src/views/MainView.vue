@@ -42,9 +42,24 @@
         </div>
         <div>
           <label>NIT:</label>
-          <div class="d-flex mb-2">
-            <input type="text" class="form-control form-control-sm w-25" v-model="nit" />
-            <button class="btn btn-info btn-sm w-75 ms-2 btn-buscar" @click="get_info_tercero">Buscar</button>
+          <div class="grupo-busqueda">
+            <div class="w-75">
+              <input 
+                  type="text" 
+                  class="form-control form-control-sm w-100" 
+                  v-model="nit" 
+                  @focus="mostrarLista = true" 
+                  @blur="ocultarLista"
+              >
+              <ul v-if="mostrarLista && terceros_list.length" class="dropdown-list">
+                  <li v-for="ter in terceros_list" :key="ter.nit" @mousedown="seleccionarTercero(ter)">
+                      {{ ter.nit }} - {{ ter.nombres }}
+                  </li>
+              </ul>
+            </div>
+            <div class="w-25">
+              <button class="btn btn-info btn-sm w-100 ms-2 btn-buscar" @click="get_info_tercero">Buscar</button>
+            </div>
           </div>
           <label>Nombre:</label><input type="text" class="form-control form-control-sm mb-2" v-model="nombreTercero" readonly />
           <label>Coordinador:</label><input type="text" class="form-control form-control-sm mb-2" v-model="coordinadorTercero" readonly />
@@ -118,7 +133,10 @@
         </div>
         <div class="d-flex gap-2 w-100">
           <button class="btn btn-danger btn-sm w-50 btn-limpiar" @click="limpiarCampos">Limpiar</button>
-          <button class="btn btn-primary btn-sm w-50 btn-guardar" @click="guardarCotizacion">Guardar</button>
+          <button class="btn btn-primary btn-sm w-50 btn-guardar" @click="guardarCotizacion" :disabled="spinnerLoading">
+            <span v-if="spinnerLoading" class="spinner-border spinner-border-sm"></span>
+                {{ spinnerLoading ? 'Guardando...' : 'Guardar' }}
+          </button>
         </div>
       </div>
     </div>
@@ -240,6 +258,11 @@ const seguimiento = ref('');
 const item_revisado_cumple = ref(0);
 const item_revisado_muestra = ref(0);
 
+const mostrarLista = ref(false);
+const tercerosBusqueda = ref("");
+const tercerosNit = ref("");
+const terceros_list = ref([]);
+
 const msg = ref('');
 const modalTitle = ref('');
 const modalInstance = ref(null);
@@ -248,6 +271,7 @@ const modalPreguntaInstance = ref(null);
 const errorMsg = ref('');
 const loading = ref(false);
 const loading_msg = ref('');
+const spinnerLoading = ref(false);
 
 // ✅ Función para realizar carga de pantalla de espera.
 const handleGetEmails = async () => {
@@ -313,7 +337,7 @@ const get_info_tercero = async () => {
     const response = await axios.post(
         `${apiUrl}/get_tercero_x_nit`,
         {
-          nit: nit.value,
+          nit: nit.value.toString(),
           fecha: selectedFechaHora.value
         },
         {
@@ -440,11 +464,15 @@ const limpiarCampos = () => {
   desvio_oportunidad.value = '';
   item_revisado_cumple.value = 0;
   item_revisado_muestra.value = 0;
+  tercerosBusqueda.value = '';
+  tercerosNit.value = '';
 };
 // ✅ Función para guardar una cotización
 const guardarCotizacion = async () => {
 
   try {
+
+      spinnerLoading.value = true; // Activar la espera
 
       if (datos_cotizacion_list.value.length) {
         cotizacion_concepto.value = datos_cotizacion_list.value[0].descripcion_concep1;
@@ -501,6 +529,8 @@ const guardarCotizacion = async () => {
       console.error('Error al cargar los datos:', error);
       modalErrorInstance.value.show();
       errorMsg.value = error.response.data.message;
+    } finally {
+        spinnerLoading.value = false; // Desactivar la espera
     }
 };
 // ✅ Función para actualizar una cotización
@@ -637,6 +667,49 @@ const cargarDatosCotizacion = async () => {
 //   if (item_revisado_muestra.value === 0) return 0; // Evitar división por 0
 //   return ((item_revisado_cumple.value / item_revisado_muestra.value) * 100).toFixed(0); // Calcula sin redondear decimales
 // });
+
+// ✅ Función que selecciona los datos del proveedor elegido en el input de proveedor
+const seleccionarTercero = (ter) => {
+    tercerosBusqueda.value = ter.nombres;
+    tercerosNit.value = ter.nit;
+    nit.value = ter.nit;
+    mostrarLista.value = false;
+};
+
+// ✅ Función para ocultar la lista
+const ocultarLista = () => {
+    setTimeout(() => {
+        mostrarLista.value = false;
+    }, 200);
+};
+
+// ✅ Watcher que esta pendiente si hay un cambio en el campo de busqueda
+watch(nit, async (nuevoValor) => {
+
+    if (nuevoValor.length >= 1) { // Iniciar búsqueda después de 2 caracteres
+        try {
+            const response = await axios.post(`${apiUrl}/get_terceros`, 
+                {
+                    valor: nuevoValor
+                },
+                {
+                    headers: {
+                        Accept: "application/json"
+                    }
+                }
+            );
+            terceros_list.value = response.data.data;
+        } catch (error) {
+            console.error("Error en la búsqueda:", error);
+        }
+    } else {
+      terceros_list.value = [];
+    }
+    if (nuevoValor.length == 0){
+        nuevoValor = ''
+        tercerosNit.value = ''
+    }
+});
 
 // Esta funcion esta pendiente en caso que cambia el estado
 watch(selectEstados, (nuevoValor) => {
@@ -808,6 +881,12 @@ label {
   height: 600px;
   background-color: #f9f9f9;
   white-space: normal;
+}
+
+.grupo-busqueda {
+  display: flex;
+  align-items: start;
+  gap: 2;
 }
 
 .btn-buscar{
