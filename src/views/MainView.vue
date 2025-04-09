@@ -471,6 +471,18 @@ const limpiarCampos = () => {
 const guardarCotizacion = async () => {
 
   try {
+      if (itemsCotizar.value == '' || itemsCotizar.value == null) {
+        errorMsg.value = 'Items a cotizar no debe estar vacío.';
+        modalErrorInstance.value.show();
+        return
+      }
+
+      if (selectEstados.value === 'NO SE COTIZA' && (motivo_no_cotizacion.value == '' || motivo_no_cotizacion.value == null)) {
+        errorMsg.value = 'Motivo de NO cotización no debe estar vacío.';
+        modalErrorInstance.value.show();
+        return
+      }
+
 
       spinnerLoading.value = true; // Activar la espera
 
@@ -537,6 +549,19 @@ const guardarCotizacion = async () => {
 const actualizarCotizacion = async () => {
 
   try {
+
+      if (itemsCotizar.value == '' || itemsCotizar.value == null) {
+        errorMsg.value = 'Items a cotizar no debe estar vacío.';
+        modalErrorInstance.value.show();
+        return
+      }
+
+      if (selectEstados.value === 'NO SE COTIZA' && (motivo_no_cotizacion.value == '' || motivo_no_cotizacion.value == null)) {
+        errorMsg.value = 'Motivo de NO cotización no debe estar vacío.';
+        modalErrorInstance.value.show();
+        return
+      }
+
 
       if (datos_cotizacion_list.value.length) {
         cotizacion_concepto.value = datos_cotizacion_list.value[0].descripcion_concep1;
