@@ -17,6 +17,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0', // Aceptar conexiones desde cualquier interfaz
-    port: 5173,      // Cambia el puerto si es necesario
+    port: 5173,
+    allowedHosts: ['intranet.avantika-cotizaciones']      // Cambia el puerto si es necesario
   },
 })
