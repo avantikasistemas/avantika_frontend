@@ -80,7 +80,18 @@
             class="form-control mt-2" 
             v-model="motivo_no_cotizacion">
           </textarea>
-          <label>Desvío de Oportunidad:</label><textarea class="form-control mt-2" v-model="desvio_oportunidad"></textarea>
+          <div class="d-flex align-items-end gap-2 flex-wrap">
+            <label>Desvío de Oportunidad:</label>
+            <textarea class="form-control mt-2" v-model="desvio_oportunidad"></textarea>
+            <div class="d-flex flex-column">
+              <label style="font-size:12px;">Autorización desvío de Oportunidad</label>
+              <select class="form-control form-control-sm" v-model="autorizacion_desvio_oportunidad">
+                <option value="" disabled>Seleccione</option>
+                <option value="1">SI</option>
+                <option value="0">NO</option>
+              </select>
+            </div>
+          </div>
           <hr>
         </div>
       </div>
@@ -137,10 +148,17 @@
           <span>{{ porcentajeCalculo }} %</span>
         </div>
 
-        <div class="mt-3">
+        <div class="d-flex align-items-end gap-2 mt-3 flex-wrap">
           <label>Desvío de Calidad:</label><textarea class="form-control mt-2" v-model="desvio_calidad"></textarea>
+          <div class="d-flex flex-column">
+            <label style="font-size:12px;">Autorización desvío de Calidad</label>
+            <select class="form-control form-control-sm" v-model="autorizacion_desvio_calidad">
+              <option value="" disabled>Seleccione</option>
+              <option value="1">SI</option>
+              <option value="0">NO</option>
+            </select>
+          </div>
         </div>
-
 
         <div class="mt-3">
           <h6 class="titulo-seguimiento">Seguimientos a la Cotización Anterior</h6>
@@ -265,6 +283,8 @@ const items_cotizados = ref('');
 const motivo_no_cotizacion = ref('');
 const desvio_oportunidad = ref('');
 const desvio_calidad = ref('');
+const autorizacion_desvio_oportunidad = ref(null);
+const autorizacion_desvio_calidad = ref(null);
 
 const numero_cotizacion = ref('');
 const dias_oportunidad = ref('');
@@ -541,7 +561,9 @@ const guardarCotizacion = async () => {
             item_revisado_cumple: item_revisado_cumple.value,
             item_revisado_muestra: item_revisado_muestra.value,
             porcentaje_muestra: porcentajeCalculo.value,
-            desvio_calidad: desvio_calidad.value
+            desvio_calidad: desvio_calidad.value,
+            autorizacion_desvio_oportunidad: autorizacion_desvio_oportunidad.value,
+            autorizacion_desvio_calidad: autorizacion_desvio_calidad.value
           },
           {
               headers: {
@@ -621,7 +643,9 @@ const actualizarCotizacion = async () => {
             item_revisado_cumple: item_revisado_cumple.value,
             item_revisado_muestra: item_revisado_muestra.value,
             porcentaje_muestra: porcentajeCalculo.value,
-            desvio_calidad: desvio_calidad.value
+            desvio_calidad: desvio_calidad.value,
+            autorizacion_desvio_oportunidad: autorizacion_desvio_oportunidad.value,
+            autorizacion_desvio_calidad: autorizacion_desvio_calidad.value
           },
           {
               headers: {
@@ -706,6 +730,8 @@ const cargarDatosCotizacion = async () => {
         item_revisado_cumple.value = response.data.data.item_revisado_cumple;
         item_revisado_muestra.value = response.data.data.item_revisado_muestra;
         desvio_calidad.value = response.data.data.desvio_calidad;
+        autorizacion_desvio_oportunidad.value = response.data.data.autorizacion_desvio_oportunidad;
+        autorizacion_desvio_calidad.value = response.data.data.autorizacion_desvio_calidad;
 
         if (item_revisado_cumple.value == null){
           item_revisado_cumple.value = 0;
