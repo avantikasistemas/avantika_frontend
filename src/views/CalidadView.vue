@@ -503,6 +503,8 @@ const limpiarCampos = () => {
   desvio_calidad.value = '';
   tercerosBusqueda.value = '';
   tercerosNit.value = '';
+  autorizacion_desvio_oportunidad.value = null;
+  autorizacion_desvio_calidad.value = null;
 };
 // ✅ Función para guardar una cotización
 const guardarCotizacion = async () => {
