@@ -14,9 +14,13 @@
             <input type="date" class="form-control inputdate" v-model="fechaFin" id="fechaFin" />
             <button class="btn-ext" @click="handleGetEmails" >Extraer Correos</button>
         </div>
-        <div class="d-flex gap-2 mb-3">
+        <div class="d-flex gap-2 mb-3 align-items-center">
             <button class="btn-upd" @click="handleGetEstados">Actualizar Estado de Seguimiento</button>
             <button class="btn-load" @click="cargarDatosCotizacion">Cargar Datos</button>
+            <button class="btn btn-outline-primary ms-auto btn-router-link" @click="abrirModalSeguimiento">
+              <i class="bi bi-calendar-plus me-1"></i>
+              Programar Seguimiento
+            </button>
         </div>
         <div class="table-container">
           <table class="table table-bordered table-striped table-hover custom-table mb-3">
@@ -237,6 +241,189 @@
         <p class="mt-2 text-light">{{ loading_msg }}</p>
     </div>
 
+    <!-- Modal Programar Seguimiento -->
+    <div class="modal fade" id="modalSeguimiento" tabindex="-1" aria-labelledby="modalSeguimientoLabel" aria-hidden="true" ref="modalSeguimiento">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalSeguimientoLabel">Programar Seguimiento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+
+            <div class="contenedor-programar-seguimiento">
+              <div class="contenedor-formulario-seguimiento">
+                  <h4 class="titulo-programar-seguimiento">Programar seguimientos</h4>
+                  <form @submit.prevent="buscarCotizacion">
+                    <div class="grupo-cotizacion mb-3">
+                      <label for="num_cotizacion" class="mb-2">N° Cotización:</label>
+                      <div class="input-group">
+                        <input id="num_cotizacion" type="text" class="form-control" v-model="num_cotizacion" />
+                        <button type="submit" class="btn btn-buscar-cot" title="Buscar">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="icono-buscar" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.398a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+              </div>
+
+              <!-- Nueva sección para mostrar la información -->
+              <div v-if="cotizacionInfo" class="info-cotizacion ms-5 info-cotizacion-compacta">
+                <h5 class="titulo-info-cotizacion">Información Cotización</h5>
+                <div class="row row-compacta">
+                  <div class="col-6 mb-2">
+                    <strong>NIT:</strong> <span>{{ cotizacionInfo.nit }}</span>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <strong>Nombre:</strong> <span>{{ cotizacionInfo.nombre_tercero }}</span>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <strong>Valor:</strong> <span>${{ cotizacionInfo.Pesos_cotizados }}</span>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <strong>Usuario:</strong> <span>{{ cotizacionInfo.usuario }}</span>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <strong>Concepto:</strong> <span>{{ cotizacionInfo.descripcion_concep1 }}</span>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <strong>Estado:</strong> <span>{{ cotizacionInfo.descripcion_concep2 }}</span>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <strong>Entrega:</strong> <span>{{ cotizacionInfo.fecha_hora_entrega }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr v-if="cotizacionInfo">
+
+            <div class="segundo-contenedor">
+              <div v-if="cotizacionInfo" class="contenedor-programar-seguimiento">
+                <div class="contenedor-formulario-seguimiento">
+                    <form @submit.prevent="guardar_seguimiento">
+                      <div class="grupo-cotizacion mb-3">
+                        <label for="fecha_programacion" class="mb-2">Fecha y hora seguimiento:</label>
+                        <input id="fecha_programacion" type="datetime-local" class="form-control form-control-sm mb-3" v-model="fecha_programacion" />
+                      </div>
+                      <div class="grupo-cotizacion mb-3">
+                        <label for="tipo_seguimiento" class="mb-2">Tipo de Seguimiento:</label>
+                        <select id="tipo_seguimiento" class="form-control form-control-sm mb-3" v-model="tipo_seguimiento_seleccionado">
+                          <option value="null">Seleccione una opción</option>
+                          <option v-for="tipo in tipo_seguimiento" :key="tipo.id" :value="tipo.id">
+                            {{ tipo.nombre }}
+                          </option>
+                        </select>
+                      </div>
+                      <div class="grupo-cotizacion mb-3">
+                        <label for="contacto" class="mb-2">Contacto:</label>
+                        <select id="contacto" class="form-control form-control-sm mb-3" v-model="contacto_seleccionado">
+                          <option value="null">Seleccione una opción</option>
+                          <option v-for="contacto in contactos" :key="contacto.tel_celular" :value="contacto.tel_celular">
+                            {{ contacto.nombre }} - {{ contacto.tel_celular }}
+                          </option>
+                        </select>
+                      </div>
+                      <button type="submit" class="btn btn-primary w-100 btn-sm">Guardar</button>
+                    </form>
+                </div>
+              </div>
+              <!-- Nuevo div con tabla debajo del formulario de seguimiento -->
+              <div v-if="cotizacionInfo" class="contenedor-tabla-seguimientos">
+                <h5>Seguimientos Programados</h5>
+                <table class="table table-bordered table-striped tabla-seguimiento-sm">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Cotización</th>
+                      <th>Fecha Programación</th>
+                      <th>Usuario</th>
+                      <th>Tipo Seguimiento</th>
+                      <th>Contacto</th>
+                      <th>Resultado</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="cotizacionHistoria.length === 0">
+                      <td colspan="8" class="text-center">No hay seguimientos programados.</td>
+                    </tr>
+                    <tr v-for="(item, idx) in cotizacionHistoria" :key="item.id || idx">
+                      <td>{{ item.index }}</td>
+                      <td>{{ item.numero }}</td>
+                      <td>{{ item.fecha_programacion }}</td>
+                      <td>{{ item.usuario }}</td>
+                      <td>{{ item.tipo_seguimiento }}</td>
+                      <td>{{ item.contacto }}</td>
+                      <td>
+                        <select
+                          class="form-select form-select-sm"
+                          v-model="item.resultado_seguimiento"
+                          :disabled="item.bloqueado"
+                        >
+                          <option value="null" >Seleccione</option>
+                          <option v-for="resultado in tipo_resultado_llamada" :key="resultado.id" :value="resultado.id">
+                            {{ resultado.nombre }}
+                          </option>
+                        </select>
+                      </td>
+                      <td>
+                        <button
+                          class="btn btn-success btn-sm"
+                          title="Guardar/Actualizar"
+                          :disabled="item.bloqueado || item.resultado_seguimiento === 'null' || !item.resultado_seguimiento"
+                          @click.prevent="actualizarResultadoLlamada(item)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save" viewBox="0 0 16 16">
+                            <path d="M8 0a2 2 0 0 0-2 2v1H2.5A1.5 1.5 0 0 0 1 4.5v9A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5V4.707a1.5 1.5 0 0 0-.44-1.06l-2.707-2.707A1.5 1.5 0 0 0 10.293 0H8zm0 1h2.293a.5.5 0 0 1 .353.146l2.707 2.707A.5.5 0 0 1 13.5 4.5V13.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-9A.5.5 0 0 1 2.5 3H6V2a1 1 0 0 1 1-1zm-2 4a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0V5zm1 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <hr v-if="cotizacionInfo">
+
+            <div v-if="mostrarMotivoNoAdjudicacion" class="row px-3">
+              <div class="col-md-4 mb-3">
+                <label for="motivo_no_adjudicacion" class="form-label">Motivo de NO Adjudicación</label>
+                <select id="motivo_no_adjudicacion" v-model="motivo_no_adjudicacion" class="form-select" :disabled="camposNoAdjudicacionBloqueados">
+                  <option value="null">Seleccione una opción</option>
+                  <option v-for="motivo in listado_motivos_no_adjudicacion" :key="motivo.id" :value="motivo.id">
+                    {{ motivo.nombre }}
+                  </option>
+                  <!-- Agrega las opciones que necesites -->
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="razon_no_adjudicacion" class="form-label">Detalle de NO Adjudicación</label>
+                <textarea id="razon_no_adjudicacion" v-model="razon_no_adjudicacion" class="form-control" rows="3" placeholder="Describe el motivo..." :readonly="camposNoAdjudicacionBloqueados"></textarea>
+              </div>
+              <div class="col-md-2 mb-3 text-end" v-if="!camposNoAdjudicacionBloqueados">
+                <button class="btn btn-success w-100" @click="guardarMotivoNoAdjudicacion">Guardar</button>
+              </div>
+            </div>
+
+            <div v-if="mostrarMotivoAdjudicacion" class="row px-3 align-items-end mt-3">
+              <div class="col-md-10 mb-3">
+                <label for="razon_adjudicacion" class="form-label">Motivo de adjudicación</label>
+                <textarea id="razon_adjudicacion" v-model="razon_adjudicacion" class="form-control" rows="2" placeholder="Escriba el motivo de adjudicación..." :readonly="camposAdjudicacionBloqueados"></textarea>
+              </div>
+              <div class="col-md-2 mb-3 text-end">
+                <button class="btn btn-success w-100" @click="guardarMotivoAdjudicacion" v-if="!camposAdjudicacionBloqueados">Guardar</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
 </template>
 
 <script setup>
@@ -304,10 +491,41 @@ const modalTitle = ref('');
 const modalInstance = ref(null);
 const modalErrorInstance = ref(null);
 const modalPreguntaInstance = ref(null);
+const modalSeguimiento = ref(null);
 const errorMsg = ref('');
 const loading = ref(false);
 const loading_msg = ref('');
 const spinnerLoading = ref(false);
+
+const num_cotizacion = ref('');
+const fecha_programacion = ref('');
+const cotizacionInfo = ref(null);
+const seguimientoInfo = ref(null);
+const cotizacionHistoria = ref([]);
+const tipo_seguimiento = ref([]);
+const tipo_seguimiento_seleccionado = ref(null);
+const contacto_seleccionado = ref(null);
+const contactos = ref([]);
+const tipo_resultado_llamada = ref([]);
+const listado_motivos_no_adjudicacion = ref([]);
+const resultado_seguimiento = ref(null);
+
+const razon_no_adjudicacion = ref(null);
+const motivo_no_adjudicacion = ref('');
+const razon_adjudicacion = ref(null);
+
+const mostrarMotivoAdjudicacion = ref(false);
+const mostrarMotivoNoAdjudicacion = ref(false);
+
+const camposNoAdjudicacionBloqueados = ref(false);
+const camposAdjudicacionBloqueados = ref(false);
+
+const abrirModalSeguimiento = () => {
+  const modal = new Modal(modalSeguimiento.value, {
+    backdrop: 'static'
+  });
+  modal.show();
+};
 
 // ✅ Función para realizar carga de pantalla de espera.
 const handleGetEmails = async () => {
@@ -805,6 +1023,267 @@ watch(selectEstados, (nuevoValor) => {
   }
 });
 
+// Nueva función para buscar cotización
+const buscarCotizacion = async () => {
+  
+  try {
+      const response = await axios.post(
+        `${apiUrl}/buscar_cotizacion`,
+          {
+            cotizacion: num_cotizacion.value
+          },
+          {
+              headers: {
+                  Accept: "application/json",
+              }
+          }
+      );
+      if (response.status === 200) {
+          // msg.value = response.data.message;
+          modalTitle.value = "Información";
+          cotizacionInfo.value = response.data.data.data_cotizacion;
+          contactos.value = response.data.data.contactos;
+          cotizacionHistoria.value = response.data.data.historia_seguimiento.map((item, index) => {
+            return {
+              ...item,
+              index: index + 1,
+              bloqueado: item.resultado_seguimiento !== null && item.resultado_seguimiento !== 'null' && item.resultado_seguimiento !== '',
+            };
+          });
+
+          // Usamos directamente el valor de resultado_seguimiento que viene de la API
+          resultado_seguimiento.value = response.data.data.resultado_seguimiento;
+          if (resultado_seguimiento.value === 5) {
+            mostrarMotivoAdjudicacion.value = true;
+            mostrarMotivoNoAdjudicacion.value = false;
+          } else if (resultado_seguimiento.value === 6) {
+            mostrarMotivoAdjudicacion.value = false;
+            mostrarMotivoNoAdjudicacion.value = true;
+          } else {
+            mostrarMotivoAdjudicacion.value = false;
+            mostrarMotivoNoAdjudicacion.value = false;
+          }
+          seguimientoInfo.value = response.data.data.data_seguimiento;
+          if (seguimientoInfo.value) {
+            motivo_no_adjudicacion.value = seguimientoInfo.value.motivo_no_adjudicacion_id || '';
+            razon_no_adjudicacion.value = seguimientoInfo.value.razon_no_adjudicacion || ''; 
+            razon_adjudicacion.value = seguimientoInfo.value.razon_adjudicacion || '';
+
+            // Activar bloqueo si ya existe información
+            camposNoAdjudicacionBloqueados.value = !!razon_no_adjudicacion.value || !!motivo_no_adjudicacion.value;
+            camposAdjudicacionBloqueados.value = !!razon_adjudicacion.value;
+          }
+      }
+
+    } catch (error) {
+      console.error('Error al cargar los datos:', error);
+      modalErrorInstance.value.show();
+      errorMsg.value = error.response.data.message;
+      cotizacionInfo.value = null;
+    }
+}
+
+// Funcion para guardar un seguimiento de cotización
+const guardar_seguimiento = async () => {
+    try {
+      const response = await axios.post(
+        `${apiUrl}/guardar_seguimiento`,
+          {
+            cotizacion: num_cotizacion.value,
+            fecha_programacion: fecha_programacion.value,
+            usuario: cotizacionInfo.value.usuario,
+            tipo_seguimiento: tipo_seguimiento_seleccionado.value,
+            contacto: contacto_seleccionado.value
+          },
+          {
+              headers: {
+                  Accept: "application/json",
+              }
+          }
+      );
+      if (response.status === 200) {
+          msg.value = response.data.message;
+          modalInstance.value.show();
+          modalTitle.value = "Información"
+          await buscarCotizacion();
+      }
+
+    } catch (error) {
+      console.error('Error al cargar los datos:', error);
+      modalErrorInstance.value.show();
+      errorMsg.value = error.response.data.message;
+    }
+};
+
+// Función para cargar los tipos de seguimiento
+const cargar_tipo_seguimientos = async () => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/tipo_seguimientos`, {},
+        {
+            headers: {
+                Accept: "application/json",
+            }
+        }
+    );
+    if (response.status === 200) {
+      // Asignar las opciones a los select
+      tipo_seguimiento.value = response.data.data;
+      // contacto.value = response.data.data.contacto;
+    }
+  } catch (error) {
+    console.error('Error al cargar los desplegables:', error);
+    modalErrorInstance.value.show();
+    errorMsg.value = error.response.data.message;
+  }
+};
+
+// Función para cargar los tipos de resultado de llamada
+const cargar_tipo_resultado_llamada = async () => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/tipo_resultado_llamada`, {},
+        {
+            headers: {
+                Accept: "application/json",
+            }
+        }
+    );
+    if (response.status === 200) {
+      // Asignar las opciones a los select
+      tipo_resultado_llamada.value = response.data.data;
+    }
+  } catch (error) {
+    console.error('Error al cargar los desplegables:', error);
+    modalErrorInstance.value.show();
+    errorMsg.value = error.response.data.message;
+  }
+};
+
+// Función para actualizar el resultado de la llamada
+const actualizarResultadoLlamada = async (item) => {
+  try {
+    // Puedes ajustar los campos enviados según tu API
+    const response = await axios.post(
+      `${apiUrl}/actualizar_resultado_llamada`,
+      {
+        id: item.id,
+        numero: item.numero,
+        resultado_llamada: item.resultado_seguimiento
+      },
+      {
+        headers: {
+          Accept: "application/json",
+        }
+      }
+    );
+    if (response.status === 200) {
+      item.bloqueado = true;
+
+      // Activar visualización según valor guardado
+      if (item.resultado_seguimiento === 5) {
+        mostrarMotivoAdjudicacion.value = true;
+        mostrarMotivoNoAdjudicacion.value = false;
+      } else if (item.resultado_seguimiento === 6) {
+        mostrarMotivoAdjudicacion.value = false;
+        mostrarMotivoNoAdjudicacion.value = true;
+      } else {
+        mostrarMotivoAdjudicacion.value = false;
+        mostrarMotivoNoAdjudicacion.value = false;
+      }
+      // Opcional: mostrar mensaje de éxito
+      msg.value = "Resultado actualizado correctamente";
+      modalTitle.value = "Actualización";
+      modalInstance.value.show();
+    }
+  } catch (error) {
+    errorMsg.value = error.response?.data?.message || "Error al actualizar";
+    modalErrorInstance.value.show();
+  }
+};
+
+// Función para cargar los motivos de no adjudicación
+const cargar_motivos_no_adjudicacion = async () => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/motivos_no_adjudicacion`, {},
+        {
+            headers: {
+                Accept: "application/json",
+            }
+        }
+    );
+    if (response.status === 200) {
+      // Asignar las opciones a los select
+      listado_motivos_no_adjudicacion.value = response.data.data;
+      // contacto.value = response.data.data.contacto;
+    }
+  } catch (error) {
+    console.error('Error al cargar los desplegables:', error);
+    modalErrorInstance.value.show();
+    errorMsg.value = error.response.data.message;
+  }
+};
+
+// Función para guardar el motivo de no adjudicación
+const guardarMotivoNoAdjudicacion = async () => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/guardar_no_adjudicacion`,
+        {
+          motivo_no_adjudicacion: motivo_no_adjudicacion.value,
+          razon_no_adjudicacion: razon_no_adjudicacion.value,
+          cotizacion: num_cotizacion.value
+        },
+        {
+            headers: {
+                Accept: "application/json",
+            }
+        }
+    );
+    if (response.status === 200) {
+        msg.value = response.data.message;
+        modalInstance.value.show();
+        modalTitle.value = "Información"
+        await buscarCotizacion();
+    }
+
+  } catch (error) {
+    console.error('Error al cargar los datos:', error);
+    modalErrorInstance.value.show();
+    errorMsg.value = error.response.data.message;
+  }
+};
+
+// Función para guardar el motivo de no adjudicación
+const guardarMotivoAdjudicacion = async () => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/guardar_adjudicacion`,
+        {
+          razon_adjudicacion: razon_adjudicacion.value,
+          cotizacion: num_cotizacion.value
+        },
+        {
+            headers: {
+                Accept: "application/json",
+            }
+        }
+    );
+    if (response.status === 200) {
+        msg.value = response.data.message;
+        modalInstance.value.show();
+        modalTitle.value = "Información"
+        await buscarCotizacion();
+    }
+
+  } catch (error) {
+    console.error('Error al cargar los datos:', error);
+    modalErrorInstance.value.show();
+    errorMsg.value = error.response.data.message;
+  }
+};
+
 // Código que se ejecuta al montar el componente
 onMounted(() => {
   modalInstance.value = new Modal(exitoModal);
@@ -813,10 +1292,19 @@ onMounted(() => {
   fechaInicio.value = getFechaUnMesAtras();
   fechaFin.value = getFechaHoy();
   cargarDatos();
+
+  cargar_tipo_seguimientos();
+  cargar_tipo_resultado_llamada();
+  cargar_motivos_no_adjudicacion();
 });
 </script>
   
 <style scoped>
+
+.modal-backdrop.show {
+  opacity: 0.5;
+  backdrop-filter: blur(4px); /* Desenfoque del fondo */
+}
 
 #main-data > div:first-child {
     width: 35%;
@@ -1057,6 +1545,22 @@ button {
     z-index: 9999; /* Asegura que esté sobre todo */
 }
 
+.btn-router-link {
+  border-width: 2px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(39,120,191,0.08);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  background: linear-gradient(90deg, #e3f0ff 0%, #f8fbff 100%);
+}
+.btn-router-link:hover {
+  background: #2778bf;
+  color: #fff !important;
+  border-color: #2778bf;
+  box-shadow: 0 4px 16px rgba(39,120,191,0.15);
+  text-decoration: none;
+}
+
 @media (max-width: 1280px) {
 
     .btn-ext{
@@ -1087,6 +1591,113 @@ button {
     .entrega-container input, .entrega-container label {
         width: 100% !important;
     }
+}
+
+.contenedor-programar-seguimiento {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+.contenedor-formulario-seguimiento {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  width: 220px;
+  background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.titulo-programar-seguimiento {
+  margin-bottom: 20px;
+  text-align: left;
+}
+.grupo-cotizacion label {
+  font-weight: 500;
+}
+.input-group {
+  display: flex;
+  align-items: stretch;
+}
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.btn-buscar-cot {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  background-color: #2778bf;
+  color: #fff;
+  border: 1px solid #2778bf;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+}
+.btn-buscar-cot:hover, .btn-buscar-cot:focus {
+  background-color: #155a8a;
+  color: #fff;
+}
+.icono-buscar {
+  vertical-align: middle;
+}
+.info-cotizacion {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  min-width: 250px;
+  width: 100%;
+  flex: 1 1 0;
+  margin-left: 20px !important;
+  box-sizing: border-box;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -8px;
+  margin-left: -8px;
+}
+.col-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.contenedor-tabla-seguimientos {
+  margin: 10px 10px;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  min-width: 350px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.segundo-contenedor{
+  display: flex;
+}
+
+.contenedor-formulario-seguimiento .form-control-sm,
+.contenedor-formulario-seguimiento .btn-sm {
+  font-size: 0.95rem;
+  padding: 0.25rem 0.5rem;
+  height: 32px;
+}
+
+.tabla-seguimiento-sm,
+.tabla-seguimiento-sm th,
+.tabla-seguimiento-sm td {
+  font-size: 13px !important;
+  padding: 3px 5px !important;
+}
+
+
+.tabla-seguimiento-sm select{
+  font-size: 13px !important;
 }
 
 </style>
