@@ -303,7 +303,7 @@
             <div class="segundo-contenedor">
               <div v-if="cotizacionInfo" class="contenedor-programar-seguimiento">
                 <div class="contenedor-formulario-seguimiento">
-                    <form @submit.prevent="guardar_seguimiento">
+                    <form @submit.prevent="guardar_seguimiento(false)">
                       <div class="grupo-cotizacion mb-3">
                         <label for="fecha_programacion" class="mb-2">Fecha y hora seguimiento:</label>
                         <input id="fecha_programacion" type="datetime-local" class="form-control form-control-sm mb-3" v-model="fecha_programacion" />
@@ -521,6 +521,13 @@ const camposNoAdjudicacionBloqueados = ref(false);
 const camposAdjudicacionBloqueados = ref(false);
 
 const abrirModalSeguimiento = () => {
+  num_cotizacion.value = ''; // Limpiar el número de cotización
+  cotizacionInfo.value = null; // Limpiar la información de la cotización
+  if (numero_cotizacion.value) {
+    num_cotizacion.value = numero_cotizacion.value;
+    buscarCotizacion();
+  }
+
   const modal = new Modal(modalSeguimiento.value, {
     backdrop: 'static'
   });
@@ -1084,7 +1091,7 @@ const buscarCotizacion = async () => {
 }
 
 // Funcion para guardar un seguimiento de cotización
-const guardar_seguimiento = async () => {
+const guardar_seguimiento = async (flag) => {
     try {
       const response = await axios.post(
         `${apiUrl}/guardar_seguimiento`,
@@ -1093,7 +1100,8 @@ const guardar_seguimiento = async () => {
             fecha_programacion: fecha_programacion.value,
             usuario: cotizacionInfo.value.usuario,
             tipo_seguimiento: tipo_seguimiento_seleccionado.value,
-            contacto: contacto_seleccionado.value
+            contacto: contacto_seleccionado.value,
+            flag: flag,
           },
           {
               headers: {
@@ -1304,6 +1312,23 @@ onMounted(() => {
 .modal-backdrop.show {
   opacity: 0.5;
   backdrop-filter: blur(4px); /* Desenfoque del fondo */
+  z-index: 1050 !important;
+}
+
+/* Asegura que las modales de éxito y error estén siempre por delante */
+#exitoModal, #errorModal {
+  z-index: 1080 !important;
+}
+
+#exitoModal .modal-dialog,
+#errorModal .modal-dialog {
+  z-index: 1081 !important;
+}
+
+/* Opcional: fuerza el backdrop de estas modales a estar por debajo */
+#exitoModal + .modal-backdrop,
+#errorModal + .modal-backdrop {
+  z-index: 1079 !important;
 }
 
 #main-data > div:first-child {
