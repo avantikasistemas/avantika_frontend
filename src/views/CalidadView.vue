@@ -718,7 +718,7 @@ const limpiarCampos = () => {
   numero_cotizacion.value = '';
   dias_oportunidad.value = '';
   dias_entrega.value = '';
-  datos_cotizacion_list.value = '';
+  datos_cotizacion_list.value = [];
   seguimiento.value = '';
   selectedBody.value = '';
   motivo_no_cotizacion.value = '';
@@ -730,6 +730,12 @@ const limpiarCampos = () => {
   tercerosNit.value = '';
   autorizacion_desvio_oportunidad.value = null;
   autorizacion_desvio_calidad.value = null;
+  cotizacion_concepto.value = '';
+  estado.value = '';
+  fecha_entrega.value = '';
+  usuario_creador_cotizacion.value = '';
+  pesos_cotizados.value = '';
+  items_cotizados.value = '';
 };
 // ✅ Función para guardar una cotización
 const guardarCotizacion = async () => {
