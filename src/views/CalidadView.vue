@@ -196,6 +196,24 @@
         </div>
     </div>
 
+    <!-- Modal de mensaje de que se programó el seguimiento  -->
+    <div class="modal fade" id="exitoModal2" tabindex="-1" aria-labelledby="exitoModal2Label" aria-hidden="true" data-bs-backdrop="static" ref="exitoModal2">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exitoModal2Label">{{ modalTitle }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Se ha creado un seguimiento.</p>                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de pregunta -->
     <div class="modal fade" id="preguntaModal" tabindex="-1" aria-labelledby="preguntaModalLabel" aria-hidden="true" data-bs-backdrop="static" ref="preguntaModal">
         <div class="modal-dialog modal-dialog-centered">
@@ -409,7 +427,7 @@
               </div>
             </div>
 
-            <div v-if="mostrarMotivoAdjudicacion" class="row px-3 align-items-end mt-3">
+            <!--<div v-if="mostrarMotivoAdjudicacion" class="row px-3 align-items-end mt-3">
               <div class="col-md-10 mb-3">
                 <label for="razon_adjudicacion" class="form-label">Motivo de adjudicación</label>
                 <textarea id="razon_adjudicacion" v-model="razon_adjudicacion" class="form-control" rows="2" placeholder="Escriba el motivo de adjudicación..." :readonly="camposAdjudicacionBloqueados"></textarea>
@@ -417,7 +435,7 @@
               <div class="col-md-2 mb-3 text-end">
                 <button class="btn btn-success w-100" @click="guardarMotivoAdjudicacion" v-if="!camposAdjudicacionBloqueados">Guardar</button>
               </div>
-            </div>
+            </div>-->
 
           </div>
         </div>
@@ -489,6 +507,7 @@ const item_revisado_muestra = ref(0);
 const msg = ref('');
 const modalTitle = ref('');
 const modalInstance = ref(null);
+const modalInstance2 = ref(null);
 const modalErrorInstance = ref(null);
 const modalPreguntaInstance = ref(null);
 const modalSeguimiento = ref(null);
@@ -737,6 +756,14 @@ const limpiarCampos = () => {
   pesos_cotizados.value = '';
   items_cotizados.value = '';
 };
+// ✅ Función para limpiar los campos del formulario de cotización
+// const validarModal2 = () => {
+//   console.log(estado.value);
+//   if (estado.value === 'COT. ADJUDICACION') {
+//     modalInstance.value.hide();
+//     modalInstance2.value.show();
+//   }
+// };
 // ✅ Función para guardar una cotización
 const guardarCotizacion = async () => {
 
@@ -1270,37 +1297,38 @@ const guardarMotivoNoAdjudicacion = async () => {
 };
 
 // Función para guardar el motivo de no adjudicación
-const guardarMotivoAdjudicacion = async () => {
-  try {
-    const response = await axios.post(
-      `${apiUrl}/guardar_adjudicacion`,
-        {
-          razon_adjudicacion: razon_adjudicacion.value,
-          cotizacion: num_cotizacion.value
-        },
-        {
-            headers: {
-                Accept: "application/json",
-            }
-        }
-    );
-    if (response.status === 200) {
-        msg.value = response.data.message;
-        modalInstance.value.show();
-        modalTitle.value = "Información"
-        await buscarCotizacion();
-    }
+// const guardarMotivoAdjudicacion = async () => {
+//   try {
+//     const response = await axios.post(
+//       `${apiUrl}/guardar_adjudicacion`,
+//         {
+//           razon_adjudicacion: razon_adjudicacion.value,
+//           cotizacion: num_cotizacion.value
+//         },
+//         {
+//             headers: {
+//                 Accept: "application/json",
+//             }
+//         }
+//     );
+//     if (response.status === 200) {
+//         msg.value = response.data.message;
+//         modalInstance.value.show();
+//         modalTitle.value = "Información"
+//         await buscarCotizacion();
+//     }
 
-  } catch (error) {
-    console.error('Error al cargar los datos:', error);
-    modalErrorInstance.value.show();
-    errorMsg.value = error.response.data.message;
-  }
-};
+//   } catch (error) {
+//     console.error('Error al cargar los datos:', error);
+//     modalErrorInstance.value.show();
+//     errorMsg.value = error.response.data.message;
+//   }
+// };
 
 // Código que se ejecuta al montar el componente
 onMounted(() => {
   modalInstance.value = new Modal(exitoModal);
+  modalInstance2.value = new Modal(exitoModal2);
   modalErrorInstance.value = new Modal(errorModal);
   modalPreguntaInstance.value = new Modal(preguntaModal);
   fechaInicio.value = getFechaUnMesAtras();
