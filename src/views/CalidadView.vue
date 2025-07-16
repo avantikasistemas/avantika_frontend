@@ -201,14 +201,29 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exitoModal2Label">{{ modalTitle }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="exitoModal2Label">Guardar Seguimiento</h5>
+                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
                 </div>
                 <div class="modal-body">
-                    <p>Se ha creado un seguimiento.</p>                    
+                    <p>Se creará un seguimiento para el día {{ siguienteDiaHabil }}.</p>
+                    <!-- Nuevo campo de hora -->
+                    <div class="mb-3">
+                      <label for="horaSeguimiento" class="form-label">Hora:</label>
+                      <input id="horaSeguimiento" type="time" class="form-control" v-model="horaSeguimiento" />
+                    </div>
+                    <!-- Nuevo select -->
+                    <div class="mb-3">
+                      <label for="modal_contactos" class="form-label">Contacto:</label>
+                      <select id="modal_contactos" class="form-select" v-model="modal_contacto_seleccionado">
+                        <option :value="null" disabled>Seleccione una opción...</option>
+                        <option v-for="contac in modal_contactos" :key="contac.tel_celular" :value="contac.tel_celular + ' - ' + contac.nombre">
+                          {{ contac.nombre }} - {{ contac.tel_celular }}
+                        </option>
+                      </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary btn-guardar-seguimiento" data-bs-dismiss="modal" @click="guardarSeguimientoDesdeMain">Guardar Seguimiento</button>
                 </div>
             </div>
         </div>
@@ -268,7 +283,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-
+            <!-- Nuevo contenedor -->
             <div class="contenedor-programar-seguimiento">
               <div class="contenedor-formulario-seguimiento">
                   <h4 class="titulo-programar-seguimiento">Programar seguimientos</h4>
@@ -344,7 +359,11 @@
                           </option>
                         </select>
                       </div>
-                      <button type="submit" class="btn btn-primary w-100 btn-sm">Guardar</button>
+                      <button
+                        type="submit"
+                        class="btn btn-primary w-100 btn-sm btn-modal-guardar"
+                        :disabled="resultado_seguimiento === 5 || resultado_seguimiento === 6"
+                      >Guardar</button>
                     </form>
                 </div>
               </div>
@@ -380,6 +399,7 @@
                           class="form-select form-select-sm"
                           v-model="item.resultado_seguimiento"
                           :disabled="item.bloqueado"
+                          @change="onResultadoSeguimientoChange(item)"
                         >
                           <option value="null" >Seleccione</option>
                           <option v-for="resultado in tipo_resultado_llamada" :key="resultado.id" :value="resultado.id">
@@ -388,7 +408,9 @@
                         </select>
                       </td>
                       <td>
+                        <!-- Oculta el botón si resultado_seguimiento es 6 -->
                         <button
+                          v-if="item.resultado_seguimiento !== 6"
                           class="btn btn-success btn-sm"
                           title="Guardar/Actualizar"
                           :disabled="item.bloqueado || item.resultado_seguimiento === 'null' || !item.resultado_seguimiento"
@@ -533,11 +555,18 @@ const razon_no_adjudicacion = ref(null);
 const motivo_no_adjudicacion = ref('');
 const razon_adjudicacion = ref(null);
 
-const mostrarMotivoAdjudicacion = ref(false);
 const mostrarMotivoNoAdjudicacion = ref(false);
 
 const camposNoAdjudicacionBloqueados = ref(false);
 const camposAdjudicacionBloqueados = ref(false);
+
+const fechaActual = ref('')
+const siguienteDiaHabil = ref('')
+const horaSeguimiento = ref('');
+const modal_contacto_seleccionado = ref(null);
+const modal_contactos = ref([]);
+const flag_mod = ref(true);
+const selectedItem = ref(null);
 
 const abrirModalSeguimiento = () => {
   num_cotizacion.value = ''; // Limpiar el número de cotización
@@ -551,6 +580,50 @@ const abrirModalSeguimiento = () => {
     backdrop: 'static'
   });
   modal.show();
+};
+
+const onResultadoSeguimientoChange = (item) => {
+  if (item.resultado_seguimiento === 6) {
+    mostrarMotivoNoAdjudicacion.value = true;
+  }else {
+    mostrarMotivoNoAdjudicacion.value = false;
+  }
+  selectedItem.value = item;
+};
+
+const guardarSeguimientoDesdeMain = async () => {
+  try {
+    const response = await axios.post(
+        `${apiUrl}/guardar_seguimiento_desde_principal`,
+          {
+            email_sender: selectedCorreo.value,
+            email_subject: selectedAsunto.value,
+            email_datetime: selectedFechaHora.value,
+            numero_cotizacion: numero_cotizacion.value,
+            usuario_creador_cotizacion: usuario_creador_cotizacion.value,
+            fecha_programacion: siguienteDiaHabil.value,
+            hora_programacion: horaSeguimiento.value,
+            contacto: modal_contacto_seleccionado.value
+          },
+          {
+              headers: {
+                  Accept: "application/json"
+              }
+          }
+      );
+      if (response.status === 200) {
+        alert("Seguimiento programado exitosamente.");
+        // modalInstance.value.show();
+        // modalTitle.value = "Guardar";
+        // msg.value = response.data.message;
+        await consultarCotizacion();
+      }
+
+    } catch (error) {
+      console.error('Error al cargar los datos:', error);
+      modalErrorInstance.value.show();
+      errorMsg.value = error.response.data.message;
+    } 
 };
 
 // ✅ Función para realizar carga de pantalla de espera.
@@ -756,14 +829,36 @@ const limpiarCampos = () => {
   pesos_cotizados.value = '';
   items_cotizados.value = '';
 };
-// ✅ Función para limpiar los campos del formulario de cotización
-// const validarModal2 = () => {
-//   console.log(estado.value);
-//   if (estado.value === 'COT. ADJUDICACION') {
-//     modalInstance.value.hide();
-//     modalInstance2.value.show();
-//   }
-// };
+
+const validarModal2 = async () => {
+  if (selectEstados.value === 'COT. ADJUDICACION') {
+
+    try {
+      const response = await axios.post(
+        `${apiUrl}/obtener_contactos`,
+        {
+          nit: nit.value
+        },
+        {
+            headers: {
+                Accept: "application/json",
+            }
+        }
+      )
+      if (response.status === 200) {
+        modal_contactos.value = response.data.data
+      }
+    } catch (error) {
+      console.error('Error al cargar los datos:', error);
+      modalErrorInstance.value.show();
+      errorMsg.value = error.response.data.message;
+    }
+
+    modalInstance.value.hide();
+    modalInstance2.value.show();
+  }
+};
+
 // ✅ Función para guardar una cotización
 const guardarCotizacion = async () => {
 
@@ -915,9 +1010,15 @@ const actualizarCotizacion = async () => {
       );
       modalPreguntaInstance.value.hide();
       if (response.status === 200) {
+          flag_mod.value = response.data.data;
           modalTitle.value = "Actualizar";
           msg.value = response.data.message;
-          modalInstance.value.show();
+          if (!flag_mod.value) {
+            validarModal2();
+          }else if(flag_mod.value){
+            // modalInstance.value.show();
+            alert("Registro actualizado exitosamente.");
+          }
       }
 
     } catch (error) {
@@ -971,7 +1072,7 @@ const cargarDatosCotizacion = async () => {
         }
     );
     if (response.status === 200) {
-        modalInstance.value.show();
+        // modalInstance.value.show();
         modalTitle.value = "Información";
         msg.value = response.data.message;
         nit.value = response.data.data.nit;
@@ -1093,14 +1194,9 @@ const buscarCotizacion = async () => {
 
           // Usamos directamente el valor de resultado_seguimiento que viene de la API
           resultado_seguimiento.value = response.data.data.resultado_seguimiento;
-          if (resultado_seguimiento.value === 5) {
-            mostrarMotivoAdjudicacion.value = true;
-            mostrarMotivoNoAdjudicacion.value = false;
-          } else if (resultado_seguimiento.value === 6) {
-            mostrarMotivoAdjudicacion.value = false;
+          if (resultado_seguimiento.value === 6) {
             mostrarMotivoNoAdjudicacion.value = true;
           } else {
-            mostrarMotivoAdjudicacion.value = false;
             mostrarMotivoNoAdjudicacion.value = false;
           }
           seguimientoInfo.value = response.data.data.data_seguimiento;
@@ -1143,9 +1239,13 @@ const guardar_seguimiento = async (flag) => {
           }
       );
       if (response.status === 200) {
-          msg.value = response.data.message;
-          modalInstance.value.show();
-          modalTitle.value = "Información"
+          // msg.value = response.data.message;
+          // modalInstance.value.show();
+          // modalTitle.value = "Información"
+          alert("Seguimiento guardado exitosamente.");
+          if (numero_cotizacion.value) {
+            await consultarCotizacion();
+          }
           await buscarCotizacion();
       }
 
@@ -1219,23 +1319,23 @@ const actualizarResultadoLlamada = async (item) => {
       }
     );
     if (response.status === 200) {
+      resultado_seguimiento.value = response.data.data;
       item.bloqueado = true;
 
       // Activar visualización según valor guardado
-      if (item.resultado_seguimiento === 5) {
-        mostrarMotivoAdjudicacion.value = true;
-        mostrarMotivoNoAdjudicacion.value = false;
-      } else if (item.resultado_seguimiento === 6) {
-        mostrarMotivoAdjudicacion.value = false;
+      if (item.resultado_seguimiento === 6) {
         mostrarMotivoNoAdjudicacion.value = true;
       } else {
-        mostrarMotivoAdjudicacion.value = false;
         mostrarMotivoNoAdjudicacion.value = false;
       }
       // Opcional: mostrar mensaje de éxito
-      msg.value = "Resultado actualizado correctamente";
-      modalTitle.value = "Actualización";
-      modalInstance.value.show();
+      // msg.value = "Resultado actualizado correctamente";
+      // modalTitle.value = "Actualización";
+      // modalInstance.value.show();
+      alert("Resultado actualizado correctamente.");
+      if (numero_cotizacion.value) {
+        await consultarCotizacion();
+      }
     }
   } catch (error) {
     errorMsg.value = error.response?.data?.message || "Error al actualizar";
@@ -1269,9 +1369,19 @@ const cargar_motivos_no_adjudicacion = async () => {
 // Función para guardar el motivo de no adjudicación
 const guardarMotivoNoAdjudicacion = async () => {
   try {
+    if (motivo_no_adjudicacion.value === '' || motivo_no_adjudicacion.value === null
+    || razon_no_adjudicacion.value === '' || razon_no_adjudicacion.value === null) {
+      errorMsg.value = 'Motivo o razón de no adjudicación no debe estar vacío.';
+      modalErrorInstance.value.show();
+      return;
+    }
+
     const response = await axios.post(
       `${apiUrl}/guardar_no_adjudicacion`,
         {
+          id: selectedItem.value.id,
+          numero: selectedItem.value.numero,
+          resultado_llamada: selectedItem.value.resultado_seguimiento,
           motivo_no_adjudicacion: motivo_no_adjudicacion.value,
           razon_no_adjudicacion: razon_no_adjudicacion.value,
           cotizacion: num_cotizacion.value
@@ -1283,9 +1393,15 @@ const guardarMotivoNoAdjudicacion = async () => {
         }
     );
     if (response.status === 200) {
-        msg.value = response.data.message;
-        modalInstance.value.show();
-        modalTitle.value = "Información"
+        resultado_seguimiento.value = response.data.data;
+
+        // Activar visualización según valor guardado
+        if (resultado_seguimiento.value === 6) {
+          mostrarMotivoNoAdjudicacion.value = true;
+        } else {
+          mostrarMotivoNoAdjudicacion.value = false;
+        }
+        alert("Resultado actualizado correctamente.");
         await buscarCotizacion();
     }
 
@@ -1325,6 +1441,29 @@ const guardarMotivoNoAdjudicacion = async () => {
 //   }
 // };
 
+const obtenerSiguienteDiaHabil = async () => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/calcular_dia_habil`,
+      {
+        fecha: fechaActual.value
+      },
+      {
+          headers: {
+              Accept: "application/json",
+          }
+      }
+    )
+    if (response.status === 200) {
+      siguienteDiaHabil.value = response.data.data.siguiente_dia_habil
+    }
+  } catch (error) {
+    console.error('Error al cargar los datos:', error);
+    modalErrorInstance.value.show();
+    errorMsg.value = error.response.data.message;
+  }
+}
+
 // Código que se ejecuta al montar el componente
 onMounted(() => {
   modalInstance.value = new Modal(exitoModal);
@@ -1338,6 +1477,14 @@ onMounted(() => {
   cargar_tipo_seguimientos();
   cargar_tipo_resultado_llamada();
   cargar_motivos_no_adjudicacion();
+
+  const hoy = new Date()
+  const yyyy = hoy.getFullYear()
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0')
+  const dd = String(hoy.getDate()).padStart(2, '0')
+  fechaActual.value = `${yyyy}-${mm}-${dd}`
+  obtenerSiguienteDiaHabil();
+
 });
 </script>
   
@@ -1736,6 +1883,16 @@ button {
   box-sizing: border-box;
 }
 
+.btn-modal-guardar,
+.btn-guardar-seguimiento {
+  background-color: #2778bf;
+}
+
+.btn-modal-guardar:hover,
+.btn-guardar-seguimiento:hover {
+  background-color: #5eaef5;
+}
+
 .segundo-contenedor{
   display: flex;
 }
@@ -1758,5 +1915,4 @@ button {
 .tabla-seguimiento-sm select{
   font-size: 13px !important;
 }
-
 </style>
