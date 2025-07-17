@@ -378,7 +378,7 @@
                       <td>
                         <!-- Oculta el botón si resultado_seguimiento es 6 -->
                         <button
-                          v-if="item.resultado_seguimiento !== 6"
+                          v-if="item.resultado_seguimiento !== 6 && item.resultado_seguimiento !== 4"
                           class="btn btn-success btn-sm"
                           title="Guardar/Actualizar"
                           :disabled="item.bloqueado || item.resultado_seguimiento === 'null' || !item.resultado_seguimiento"
@@ -417,15 +417,15 @@
               </div>
             </div>
 
-            <!-- <div v-if="mostrarMotivoAdjudicacion" class="row px-3 align-items-end mt-3">
+            <div v-if="mostrarEnEstudio" class="row px-3 align-items-end mt-3">
               <div class="col-md-10 mb-3">
-                <label for="razon_adjudicacion" class="form-label">Motivo de adjudicación</label>
-                <textarea id="razon_adjudicacion" v-model="razon_adjudicacion" class="form-control" rows="2" placeholder="Escriba el motivo de adjudicación..." :readonly="camposAdjudicacionBloqueados"></textarea>
+                <label for="comentario_en_estudio" class="form-label">Comentario:</label>
+                <textarea id="comentario_en_estudio" v-model="comentario_en_estudio" class="form-control" rows="2" placeholder="Escriba el comentario..." :readonly="camposEnEstudioBloqueados"></textarea>
               </div>
               <div class="col-md-2 mb-3 text-end">
-                <button class="btn btn-success w-100" @click="guardarMotivoAdjudicacion" v-if="!camposAdjudicacionBloqueados">Guardar</button>
+                <button class="btn btn-success w-100" @click="guardarEnEstudio" v-if="!camposEnEstudioBloqueados">Guardar</button>
               </div>
-            </div> -->
+            </div> 
 
           </div>
         </div>
@@ -518,12 +518,13 @@ const resultado_seguimiento = ref(null);
 
 const razon_no_adjudicacion = ref(null);
 const motivo_no_adjudicacion = ref('');
-const razon_adjudicacion = ref(null);
+const comentario_en_estudio = ref(null);
 
 const mostrarMotivoNoAdjudicacion = ref(false);
+const mostrarEnEstudio = ref(false);
 
 const camposNoAdjudicacionBloqueados = ref(false);
-const camposAdjudicacionBloqueados = ref(false);
+const camposEnEstudioBloqueados = ref(false);
 
 const fechaActual = ref('')
 const siguienteDiaHabil = ref('')
@@ -548,10 +549,15 @@ const abrirModalSeguimiento = () => {
 };
 
 const onResultadoSeguimientoChange = (item) => {
-  if (item.resultado_seguimiento === 6) {
+  if (item.resultado_seguimiento === 4) {
+    mostrarEnEstudio.value = true;
+    mostrarMotivoNoAdjudicacion.value = false;
+  } else if (item.resultado_seguimiento === 6) {
     mostrarMotivoNoAdjudicacion.value = true;
+    mostrarEnEstudio.value = false;
   }else {
     mostrarMotivoNoAdjudicacion.value = false;
+    mostrarEnEstudio.value = false;
   }
   selectedItem.value = item;
 };
@@ -1133,20 +1139,23 @@ const buscarCotizacion = async () => {
 
           // Usamos directamente el valor de resultado_seguimiento que viene de la API
           resultado_seguimiento.value = response.data.data.resultado_seguimiento;
-          if (resultado_seguimiento.value === 6) {
+          if (resultado_seguimiento.value === 4) {
+            mostrarEnEstudio.value = true;
+          } else if (resultado_seguimiento.value === 6) {
             mostrarMotivoNoAdjudicacion.value = true;
           } else {
             mostrarMotivoNoAdjudicacion.value = false;
+            mostrarEnEstudio.value = false;
           }
           seguimientoInfo.value = response.data.data.data_seguimiento;
           if (seguimientoInfo.value) {
             motivo_no_adjudicacion.value = seguimientoInfo.value.motivo_no_adjudicacion_id || '';
             razon_no_adjudicacion.value = seguimientoInfo.value.razon_no_adjudicacion || ''; 
-            razon_adjudicacion.value = seguimientoInfo.value.razon_adjudicacion || '';
+            comentario_en_estudio.value = seguimientoInfo.value.comentario_en_estudio || '';
 
             // Activar bloqueo si ya existe información
             camposNoAdjudicacionBloqueados.value = !!razon_no_adjudicacion.value || !!motivo_no_adjudicacion.value;
-            camposAdjudicacionBloqueados.value = !!razon_adjudicacion.value;
+            camposEnEstudioBloqueados.value = !!seguimientoInfo.value.comentario_en_estudio;
           }
       }
 
@@ -1355,34 +1364,51 @@ const guardarMotivoNoAdjudicacion = async () => {
   }
 };
 
-// Función para guardar el motivo de no adjudicación
-// const guardarMotivoAdjudicacion = async () => {
-//   try {
-//     const response = await axios.post(
-//       `${apiUrl}/guardar_adjudicacion`,
-//         {
-//           razon_adjudicacion: razon_adjudicacion.value,
-//           cotizacion: num_cotizacion.value
-//         },
-//         {
-//             headers: {
-//                 Accept: "application/json",
-//             }
-//         }
-//     );
-//     if (response.status === 200) {
-//         msg.value = response.data.message;
-//         modalInstance.value.show();
-//         modalTitle.value = "Información"
-//         await buscarCotizacion();
-//     }
+// Función para guardar caso en estudio
+const guardarEnEstudio = async () => {
+  try {
 
-//   } catch (error) {
-//     console.error('Error al cargar los datos:', error);
-//     modalErrorInstance.value.show();
-//     errorMsg.value = error.response.data.message;
-//   }
-// };
+    if (comentario_en_estudio.value === '' || comentario_en_estudio.value === null) {
+      errorMsg.value = 'Comentario no debe estar vacío.';
+      modalErrorInstance.value.show();
+      return;
+    }
+
+    const response = await axios.post(
+      `${apiUrl}/guardar_en_estudio`,
+        {
+          id: selectedItem.value.id,
+          numero: selectedItem.value.numero,
+          resultado_llamada: selectedItem.value.resultado_seguimiento,
+          comentario_en_estudio: comentario_en_estudio.value,
+          cotizacion: num_cotizacion.value
+        },
+        {
+            headers: {
+                Accept: "application/json",
+            }
+        }
+    );
+    if (response.status === 200) {
+        resultado_seguimiento.value = response.data.data;
+
+        // Activar visualización según valor guardado
+        if (resultado_seguimiento.value === 4) {
+          mostrarEnEstudio.value = true;
+        } else {
+          mostrarEnEstudio.value = false;
+        }
+
+        alert("Resultado actualizado correctamente.");
+        await buscarCotizacion();
+    }
+
+  } catch (error) {
+    console.error('Error al cargar los datos:', error);
+    modalErrorInstance.value.show();
+    errorMsg.value = error.response.data.message;
+  }
+};
 
 const obtenerSiguienteDiaHabil = async () => {
   try {
