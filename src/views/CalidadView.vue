@@ -362,7 +362,7 @@
                       <button
                         type="submit"
                         class="btn btn-primary w-100 btn-sm btn-modal-guardar"
-                        :disabled="resultado_seguimiento === 5 || resultado_seguimiento === 6"
+                        :disabled="resultado_seguimiento === 5 || resultado_seguimiento === 6 || resultado_seguimiento === 7"
                       >Guardar</button>
                     </form>
                 </div>
