@@ -362,8 +362,8 @@
                       <button
                         type="submit"
                         class="btn btn-primary w-100 btn-sm btn-modal-guardar"
-                        :disabled="resultado_seguimiento === 5 || resultado_seguimiento === 6 || resultado_seguimiento === 7"
-                      >Guardar</button>
+                        :disabled="resultado_seguimiento === 5 || resultado_seguimiento === 6 || resultado_seguimiento === 7 || !puedeGuardarSeguimiento"
+                      >Programar Seguimiento</button>
                     </form>
                 </div>
               </div>
@@ -543,6 +543,7 @@ const fecha_programacion = ref('');
 const cotizacionInfo = ref(null);
 const seguimientoInfo = ref(null);
 const cotizacionHistoria = ref([]);
+const cotizacionHistoriaOriginal = ref([]);
 const tipo_seguimiento = ref([]);
 const tipo_seguimiento_seleccionado = ref(null);
 const contacto_seleccionado = ref(null);
@@ -568,6 +569,14 @@ const modal_contacto_seleccionado = ref(null);
 const modal_contactos = ref([]);
 const flag_mod = ref(true);
 const selectedItem = ref(null);
+
+const puedeGuardarSeguimiento = computed(() => {
+  if (!cotizacionHistoriaOriginal.value || !cotizacionHistoriaOriginal.value.length) return true;
+  const ultimoOriginal = cotizacionHistoriaOriginal.value[cotizacionHistoriaOriginal.value.length - 1];
+  if (!ultimoOriginal) return true;
+  // Bloquear si el último registro no tiene resultado válido en la respuesta original
+  return ultimoOriginal.resultado_seguimiento !== null && ultimoOriginal.resultado_seguimiento !== '' && ultimoOriginal.resultado_seguimiento !== 'null' && ultimoOriginal.resultado_seguimiento !== 'Seleccione';
+});
 
 const abrirModalSeguimiento = () => {
   num_cotizacion.value = ''; // Limpiar el número de cotización
@@ -1190,6 +1199,7 @@ const buscarCotizacion = async () => {
           modalTitle.value = "Información";
           cotizacionInfo.value = response.data.data.data_cotizacion;
           contactos.value = response.data.data.contactos;
+          cotizacionHistoriaOriginal.value = response.data.data.historia_seguimiento.map(item => ({ ...item }));
           cotizacionHistoria.value = response.data.data.historia_seguimiento.map((item, index) => {
             return {
               ...item,
@@ -1337,6 +1347,7 @@ const actualizarResultadoLlamada = async (item) => {
       } else {
         mostrarMotivoNoAdjudicacion.value = false;
       }
+      await buscarCotizacion();
       // Opcional: mostrar mensaje de éxito
       // msg.value = "Resultado actualizado correctamente";
       // modalTitle.value = "Actualización";
