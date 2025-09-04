@@ -184,8 +184,8 @@
                       <label for="modal_contactos" class="form-label">Contacto:</label>
                       <select id="modal_contactos" class="form-select" v-model="modal_contacto_seleccionado">
                         <option :value="null" disabled>Seleccione una opción...</option>
-                        <option v-for="contac in modal_contactos" :key="contac.tel_celular" :value="contac.tel_celular + ' - ' + contac.nombre">
-                          {{ contac.nombre }} - {{ contac.tel_celular }}
+                        <option v-for="contac in modal_contactos" :key="contac.nombre" :value="contac.nombre">
+                          {{ contac.nombre }}
                         </option>
                       </select>
                     </div>
@@ -322,8 +322,8 @@
                         <label for="contacto" class="mb-2">Contacto:</label>
                         <select id="contacto" class="form-control form-control-sm mb-3" v-model="contacto_seleccionado">
                           <option :value="null">Seleccione una opción</option>
-                          <option v-for="contacto in contactos" :key="contacto.tel_celular" :value="contacto.tel_celular + ' - ' + contacto.nombre">
-                            {{ contacto.nombre }} - {{ contacto.tel_celular }}
+                          <option v-for="contacto in contactos" :key="contacto.nombre" :value="contacto.nombre">
+                            {{ contacto.nombre }}
                           </option>
                         </select>
                       </div>
