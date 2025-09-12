@@ -380,7 +380,6 @@
                       <th>Tipo Seguimiento</th>
                       <th>Contacto</th>
                       <th>Resultado</th>
-                      <th>Acción</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -407,20 +406,6 @@
                           </option>
                         </select>
                       </td>
-                      <td>
-                        <!-- Oculta el botón si resultado_seguimiento es 6 -->
-                        <button
-                          v-if="item.resultado_seguimiento !== 6 && item.resultado_seguimiento !== 4 && item.resultado_seguimiento !== 1 && item.resultado_seguimiento !== 2 && item.resultado_seguimiento !== 3 && item.resultado_seguimiento !== 7 && item.resultado_seguimiento !== 8"
-                          class="btn btn-success btn-sm"
-                          title="Guardar/Actualizar"
-                          :disabled="item.bloqueado || item.resultado_seguimiento === 'null' || !item.resultado_seguimiento"
-                          @click.prevent="actualizarResultadoLlamada(item)"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save" viewBox="0 0 16 16">
-                            <path d="M8 0a2 2 0 0 0-2 2v1H2.5A1.5 1.5 0 0 0 1 4.5v9A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5V4.707a1.5 1.5 0 0 0-.44-1.06l-2.707-2.707A1.5 1.5 0 0 0 10.293 0H8zm0 1h2.293a.5.5 0 0 1 .353.146l2.707 2.707A.5.5 0 0 1 13.5 4.5V13.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-9A.5.5 0 0 1 2.5 3H6V2a1 1 0 0 1 1-1zm-2 4a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0V5zm1 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                          </svg>
-                        </button>
-                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -437,72 +422,20 @@
                   <option v-for="motivo in listado_motivos_no_adjudicacion" :key="motivo.id" :value="motivo.id">
                     {{ motivo.nombre }}
                   </option>
-                  <!-- Agrega las opciones que necesites -->
                 </select>
               </div>
-              <!-- <div class="col-md-6 mb-3">
-                <label for="razon_no_adjudicacion" class="form-label">Detalle de NO Adjudicación</label>
-                <textarea id="razon_no_adjudicacion" v-model="razon_no_adjudicacion" class="form-control" rows="3" placeholder="Describe el motivo..." :readonly="camposNoAdjudicacionBloqueados"></textarea>
-              </div> -->
               <div class="col-md-2 mb-3 text-end" v-if="!camposNoAdjudicacionBloqueados">
                 <button class="btn btn-success w-100" @click="guardarMotivoNoAdjudicacion">Guardar</button>
               </div>
             </div>
 
-            <div v-if="mostrarEnEstudio" class="row px-3 align-items-end mt-3">
+            <div v-if="mostrarComentario" class="row px-3 align-items-end mt-3">
               <div class="col-md-10 mb-3">
-                <label for="comentario_en_estudio" class="form-label">Comentario:</label>
-                <textarea id="comentario_en_estudio" v-model="comentario_en_estudio" class="form-control" rows="2" placeholder="Escriba el comentario..." ></textarea>
+                <label for="comentario" class="form-label">Comentario:</label>
+                <textarea id="comentario" v-model="comentario" class="form-control" rows="2" placeholder="Escriba el comentario..." ></textarea>
               </div>
               <div class="col-md-2 mb-3 text-end">
-                <button class="btn btn-success w-100" @click="guardarEnEstudio">Guardar</button>
-              </div>
-            </div> 
-
-            <div v-if="mostrarNoContesta" class="row px-3 align-items-end mt-3">
-              <div class="col-md-10 mb-3">
-                <label for="comentario_no_contesta" class="form-label">Comentario:</label>
-                <textarea id="comentario_no_contesta" v-model="comentario_no_contesta" class="form-control" rows="2" placeholder="Escriba el comentario..." ></textarea>
-              </div>
-              <div class="col-md-2 mb-3 text-end">
-                <button class="btn btn-success w-100" @click="guardarNoContesta">Guardar</button>
-              </div>
-            </div> 
-             <div v-if="mostrarLlamarMasTarde" class="row px-3 align-items-end mt-3">
-               <div class="col-md-10 mb-3">
-                 <label for="comentario_llamar_mas_tarde" class="form-label">Comentario:</label>
-                 <textarea id="comentario_llamar_mas_tarde" v-model="comentario_llamar_mas_tarde" class="form-control" rows="2" placeholder="Escriba el comentario..."></textarea>
-               </div>
-               <div class="col-md-2 mb-3 text-end">
-                 <button class="btn btn-success w-100" @click="guardarLlamarMasTarde">Guardar</button>
-               </div>
-             </div>
-             <div v-if="mostrarReprogramarLlamada" class="row px-3 align-items-end mt-3">
-               <div class="col-md-10 mb-3">
-                 <label for="comentario_reprogramar_llamada" class="form-label">Comentario:</label>
-                 <textarea id="comentario_reprogramar_llamada" v-model="comentario_reprogramar_llamada" class="form-control" rows="2" placeholder="Escriba el comentario..." ></textarea>
-               </div>
-               <div class="col-md-2 mb-3 text-end">
-                 <button class="btn btn-success w-100" @click="guardarReprogramarLlamada" >Guardar</button>
-               </div>
-             </div>
-             <div v-if="mostrarNoConfirmado" class="row px-3 align-items-end mt-3">
-               <div class="col-md-10 mb-3">
-                 <label for="comentario_no_confirmado" class="form-label">Comentario:</label>
-                 <textarea id="comentario_no_confirmado" v-model="comentario_no_confirmado" class="form-control" rows="2" placeholder="Escriba el comentario..." ></textarea>
-               </div>
-               <div class="col-md-2 mb-3 text-end">
-                 <button class="btn btn-success w-100" @click="guardarNoConfirmado" >Guardar</button>
-               </div>
-             </div>
-
-            <div v-if="mostrarPresentadoPlataforma" class="row px-3 align-items-end mt-3">
-              <div class="col-md-10 mb-3">
-                <label for="comentario_presentado_plataforma" class="form-label">Comentario:</label>
-                <textarea id="comentario_presentado_plataforma" v-model="comentario_presentado_plataforma" class="form-control" rows="2" placeholder="Escriba el comentario..." ></textarea>
-              </div>
-              <div class="col-md-2 mb-3 text-end">
-                <button class="btn btn-success w-100" @click="guardarPresentadoPlataforma" >Guardar</button>
+                <button class="btn btn-success w-100" @click="actualizarResultadoLlamada(selectedItem)">Guardar</button>
               </div>
             </div>
 
@@ -607,6 +540,7 @@ const comentario_llamar_mas_tarde = ref(null);
 const comentario_reprogramar_llamada = ref(null);
 const comentario_no_confirmado = ref(null);
 const comentario_presentado_plataforma = ref(null);
+const comentario = ref(null);
 
 const mostrarMotivoNoAdjudicacion = ref(false);
 const mostrarEnEstudio = ref(false);
@@ -615,6 +549,7 @@ const mostrarLlamarMasTarde = ref(false);
 const mostrarReprogramarLlamada = ref(false);
 const mostrarNoConfirmado = ref(false);
 const mostrarPresentadoPlataforma = ref(false);
+const mostrarComentario = ref(false);
 
 const camposNoAdjudicacionBloqueados = ref(false);
 const camposEnEstudioBloqueados = ref(false);
@@ -655,70 +590,10 @@ const abrirModalSeguimiento = () => {
 };
 
 const onResultadoSeguimientoChange = (item) => {
-  if (item.resultado_seguimiento === 4) {
-    mostrarEnEstudio.value = true;
-    mostrarMotivoNoAdjudicacion.value = false;
-    mostrarNoContesta.value = false;
-    mostrarLlamarMasTarde.value = false;
-    mostrarReprogramarLlamada.value = false;
-    mostrarNoConfirmado.value = false;
-    mostrarPresentadoPlataforma.value = false;
-  } else if (item.resultado_seguimiento === 6) {
-    mostrarMotivoNoAdjudicacion.value = true;
-    mostrarEnEstudio.value = false;
-    mostrarNoContesta.value = false;
-    mostrarLlamarMasTarde.value = false;
-    mostrarReprogramarLlamada.value = false;
-    mostrarNoConfirmado.value = false;
-    mostrarPresentadoPlataforma.value = false;
-  } else if (item.resultado_seguimiento === 1) {
-    mostrarNoContesta.value = true;
-    mostrarEnEstudio.value = false;
-    mostrarMotivoNoAdjudicacion.value = false;
-    mostrarLlamarMasTarde.value = false;
-    mostrarReprogramarLlamada.value = false;
-    mostrarNoConfirmado.value = false;
-    mostrarPresentadoPlataforma.value = false;
-  } else if (item.resultado_seguimiento === 2) {
-    mostrarLlamarMasTarde.value = true;
-    mostrarEnEstudio.value = false;
-    mostrarMotivoNoAdjudicacion.value = false;
-    mostrarNoContesta.value = false;
-    mostrarReprogramarLlamada.value = false;
-    mostrarNoConfirmado.value = false;
-    mostrarPresentadoPlataforma.value = false;
-  } else if (item.resultado_seguimiento === 3) {
-    mostrarReprogramarLlamada.value = true;
-    mostrarEnEstudio.value = false;
-    mostrarMotivoNoAdjudicacion.value = false;
-    mostrarNoContesta.value = false;
-    mostrarLlamarMasTarde.value = false;
-    mostrarNoConfirmado.value = false;
-    mostrarPresentadoPlataforma.value = false;
-  } else if (item.resultado_seguimiento === 7) {
-    mostrarNoConfirmado.value = true;
-    mostrarEnEstudio.value = false;
-    mostrarMotivoNoAdjudicacion.value = false;
-    mostrarNoContesta.value = false;
-    mostrarLlamarMasTarde.value = false;
-    mostrarReprogramarLlamada.value = false;
-    mostrarPresentadoPlataforma.value = false;
-  } else if (item.resultado_seguimiento === 8) {
-    mostrarPresentadoPlataforma.value = true;
-    mostrarNoConfirmado.value = false;
-    mostrarEnEstudio.value = false;
-    mostrarMotivoNoAdjudicacion.value = false;
-    mostrarNoContesta.value = false;
-    mostrarLlamarMasTarde.value = false;
-    mostrarReprogramarLlamada.value = false;
+  if (item.resultado_seguimiento !== null || item.resultado_seguimiento !== "null") {
+    mostrarComentario.value = true;
   } else {
-    mostrarMotivoNoAdjudicacion.value = false;
-    mostrarEnEstudio.value = false;
-    mostrarNoContesta.value = false;
-    mostrarLlamarMasTarde.value = false;
-    mostrarReprogramarLlamada.value = false;
-    mostrarNoConfirmado.value = false;
-    mostrarPresentadoPlataforma.value = false;
+    mostrarComentario.value = false;
   }
   selectedItem.value = item;
 };
@@ -1299,7 +1174,9 @@ watch(selectEstados, (nuevoValor) => {
 // Nueva función para buscar cotización
 const buscarCotizacion = async () => {
   
-  try {
+    try {
+      mostrarComentario.value = false;
+      comentario.value = null
       const response = await axios.post(
         `${apiUrl}/buscar_cotizacion`,
           {
@@ -1321,110 +1198,22 @@ const buscarCotizacion = async () => {
             return {
               ...item,
               index: index + 1,
-              bloqueado: item.resultado_seguimiento !== null && item.resultado_seguimiento !== 'null' && item.resultado_seguimiento !== '',
+              bloqueado: item.resultado_seguimiento !== null && item.resultado_seguimiento !== 'null' && item.resultado_seguimiento !== ''
             };
           });
 
           // Usamos directamente el valor de resultado_seguimiento que viene de la API
           resultado_seguimiento.value = response.data.data.resultado_seguimiento;
-          if (resultado_seguimiento.value === 4) {
-              mostrarEnEstudio.value = true;
-              mostrarMotivoNoAdjudicacion.value = false;
-              mostrarNoContesta.value = false;
-              mostrarLlamarMasTarde.value = false;
-              mostrarReprogramarLlamada.value = false;
-              mostrarNoConfirmado.value = false;
-              mostrarPresentadoPlataforma.value = false;
-          } else if (resultado_seguimiento.value === 6) {
-              mostrarMotivoNoAdjudicacion.value = true;
-              mostrarEnEstudio.value = false;
-              mostrarNoContesta.value = false;
-              mostrarLlamarMasTarde.value = false;
-              mostrarReprogramarLlamada.value = false;
-              mostrarNoConfirmado.value = false;
-              mostrarPresentadoPlataforma.value = false;
-          } else if (resultado_seguimiento.value === 1) {
-              mostrarNoContesta.value = true;
-              mostrarEnEstudio.value = false;
-              mostrarMotivoNoAdjudicacion.value = false;
-              mostrarLlamarMasTarde.value = false;
-              mostrarReprogramarLlamada.value = false;
-              mostrarNoConfirmado.value = false;
-              mostrarPresentadoPlataforma.value = false;
-          } else if (resultado_seguimiento.value === 2) {
-              mostrarLlamarMasTarde.value = true;
-              mostrarEnEstudio.value = false;
-              mostrarMotivoNoAdjudicacion.value = false;
-              mostrarNoContesta.value = false;
-              mostrarReprogramarLlamada.value = false;
-              mostrarNoConfirmado.value = false;
-              mostrarPresentadoPlataforma.value = false;
-          } else if (resultado_seguimiento.value === 3) {
-              mostrarReprogramarLlamada.value = true;
-              mostrarEnEstudio.value = false;
-              mostrarMotivoNoAdjudicacion.value = false;
-              mostrarNoContesta.value = false;
-              mostrarLlamarMasTarde.value = false;
-              mostrarNoConfirmado.value = false;
-              mostrarPresentadoPlataforma.value = false;
-          } else if (resultado_seguimiento.value === 7) {
-              mostrarNoConfirmado.value = true;
-              mostrarEnEstudio.value = false;
-              mostrarMotivoNoAdjudicacion.value = false;
-              mostrarNoContesta.value = false;
-              mostrarLlamarMasTarde.value = false;
-              mostrarReprogramarLlamada.value = false;
-              mostrarPresentadoPlataforma.value = false;
-          } else if (resultado_seguimiento.value === 8) {
-              mostrarPresentadoPlataforma.value = true;
-              mostrarNoConfirmado.value = false;
-              mostrarEnEstudio.value = false;
-              mostrarMotivoNoAdjudicacion.value = false;
-              mostrarNoContesta.value = false;
-              mostrarLlamarMasTarde.value = false;
-              mostrarReprogramarLlamada.value = false;
+          if (resultado_seguimiento.value !== null || resultado_seguimiento.value !== 'null' || resultado_seguimiento.value !== '') {
+              mostrarComentario.value = true;
           } else {
-              mostrarMotivoNoAdjudicacion.value = false;
-              mostrarEnEstudio.value = false;
-              mostrarNoContesta.value = false;
-              mostrarLlamarMasTarde.value = false;
-              mostrarReprogramarLlamada.value = false;
-              mostrarNoConfirmado.value = false;
-              mostrarPresentadoPlataforma.value = false;
+              mostrarComentario.value = false;
           }
           seguimientoInfo.value = response.data.data.data_seguimiento;
           if (seguimientoInfo.value) {
-            motivo_no_adjudicacion.value = seguimientoInfo.value.motivo_no_adjudicacion_id || ''; 
-            comentario_en_estudio.value = seguimientoInfo.value.comentario_en_estudio || '';
-            comentario_no_contesta.value = seguimientoInfo.value.comentario_no_contesta || '';
-            comentario_llamar_mas_tarde.value = seguimientoInfo.value.comentario_llamar_mas_tarde || '';
-            comentario_reprogramar_llamada.value = seguimientoInfo.value.comentario_reprogramar_llamada || '';
-            comentario_no_confirmado.value = seguimientoInfo.value.comentario_no_confirmado || '';
-            comentario_presentado_plataforma.value = seguimientoInfo.value.comentario_presentado_plataforma || '';
-
-            // Activar bloqueo si ya existe información
-            camposNoAdjudicacionBloqueados.value = !!motivo_no_adjudicacion.value;
-            camposEnEstudioBloqueados.value = !!seguimientoInfo.value.comentario_en_estudio;
-            camposNocontestaBloqueados.value = !!seguimientoInfo.value.comentario_no_contesta;
-            camposLlamarMasTardeBloqueados.value = !!seguimientoInfo.value.comentario_llamar_mas_tarde;
-            camposReprogramarLlamadaBloqueados.value = !!seguimientoInfo.value.comentario_reprogramar_llamada;
-            camposNoConfirmadoBloqueados.value = !!seguimientoInfo.value.comentario_no_confirmado;
-            camposPresentadoPlataformaBloqueados.value = !!seguimientoInfo.value.comentario_presentado_plataforma;
-          }
-          // Limpiar si no hay info
-          if (!seguimientoInfo.value) {
-            comentario_llamar_mas_tarde.value = '';
-            comentario_reprogramar_llamada.value = '';
-            comentario_no_confirmado.value = '';
-            comentario_en_estudio.value = '';
-            comentario_no_contesta.value = '';
-            comentario_presentado_plataforma.value = '';
-            camposLlamarMasTardeBloqueados.value = false;
-            camposReprogramarLlamadaBloqueados.value = false;
-            camposNoConfirmadoBloqueados.value = false;
-            camposEnEstudioBloqueados.value = false;
-            camposNocontestaBloqueados.value = false;
-            camposPresentadoPlataformaBloqueados.value = false;
+            comentario.value = seguimientoInfo.value.comentario || ''; 
+          } else {
+            comentario.value = null
           }
       }
 
@@ -1521,13 +1310,21 @@ const cargar_tipo_resultado_llamada = async () => {
 // Función para actualizar el resultado de la llamada
 const actualizarResultadoLlamada = async (item) => {
   try {
+
+    if (comentario.value === '' || comentario.value === null) {
+      errorMsg.value = 'Comentario no debe estar vacío.';
+      modalErrorInstance.value.show();
+      return;
+    }
+
     // Puedes ajustar los campos enviados según tu API
     const response = await axios.post(
       `${apiUrl}/actualizar_resultado_llamada`,
       {
         id: item.id,
         numero: item.numero,
-        resultado_llamada: item.resultado_seguimiento
+        resultado_llamada: item.resultado_seguimiento,
+        comentario: comentario.value
       },
       {
         headers: {
@@ -1543,13 +1340,11 @@ const actualizarResultadoLlamada = async (item) => {
       if (item.resultado_seguimiento === 6) {
         mostrarMotivoNoAdjudicacion.value = true;
       } else {
+        mostrarComentario.value = true;
         mostrarMotivoNoAdjudicacion.value = false;
       }
       await buscarCotizacion();
-      // Opcional: mostrar mensaje de éxito
-      // msg.value = "Resultado actualizado correctamente";
-      // modalTitle.value = "Actualización";
-      // modalInstance.value.show();
+
       alert("Resultado actualizado correctamente.");
       if (numero_cotizacion.value) {
         await consultarCotizacion();
@@ -1625,247 +1420,6 @@ const guardarMotivoNoAdjudicacion = async () => {
     console.error('Error al cargar los datos:', error);
     modalErrorInstance.value.show();
     errorMsg.value = error.response.data.message;
-  }
-};
-
-// Función para guardar caso en estudio
-const guardarEnEstudio = async () => {
-  try {
-
-    if (comentario_en_estudio.value === '' || comentario_en_estudio.value === null) {
-      errorMsg.value = 'Comentario no debe estar vacío.';
-      modalErrorInstance.value.show();
-      return;
-    }
-
-    const response = await axios.post(
-      `${apiUrl}/guardar_en_estudio`,
-        {
-          id: selectedItem.value.id,
-          numero: selectedItem.value.numero,
-          resultado_llamada: selectedItem.value.resultado_seguimiento,
-          comentario_en_estudio: comentario_en_estudio.value,
-          cotizacion: num_cotizacion.value
-        },
-        {
-            headers: {
-                Accept: "application/json",
-            }
-        }
-    );
-    if (response.status === 200) {
-        resultado_seguimiento.value = response.data.data;
-
-        // Activar visualización según valor guardado
-        if (resultado_seguimiento.value === 4) {
-          mostrarEnEstudio.value = true;
-        } else {
-          mostrarEnEstudio.value = false;
-        }
-
-        alert("Resultado actualizado correctamente.");
-        await buscarCotizacion();
-    }
-
-  } catch (error) {
-    console.error('Error al cargar los datos:', error);
-    modalErrorInstance.value.show();
-    errorMsg.value = error.response.data.message;
-  }
-};
-
-// Función para guardar comentario de llamar más tarde
-const guardarNoContesta = async () => {
-  try {
-    if (!comentario_no_contesta.value) {
-      errorMsg.value = 'El comentario no debe estar vacío.';
-      modalErrorInstance.value.show();
-      return;
-    }
-    const response = await axios.post(
-      `${apiUrl}/guardar_no_contesta`,
-      {
-        id: selectedItem.value.id,
-        numero: selectedItem.value.numero,
-        resultado_llamada: selectedItem.value.resultado_seguimiento,
-        comentario_no_contesta: comentario_no_contesta.value,
-        cotizacion: num_cotizacion.value
-      },
-      {
-        headers: {
-          Accept: "application/json"
-        }
-      }
-    );
-    if (response.status === 200) {
-      // Activar visualización según valor guardado
-      if (resultado_seguimiento.value === 1) {
-        mostrarNoContesta.value = true;
-      } else {
-        mostrarNoContesta.value = false;
-      }
-      alert('Comentario guardado exitosamente.');
-      await buscarCotizacion();
-    }
-  } catch (error) {
-    errorMsg.value = error.response?.data?.message || 'Error al guardar.';
-    modalErrorInstance.value.show();
-  }
-};
-
-// Función para guardar comentario de llamar más tarde
-const guardarLlamarMasTarde = async () => {
-  try {
-    if (!comentario_llamar_mas_tarde.value) {
-      errorMsg.value = 'El comentario no debe estar vacío.';
-      modalErrorInstance.value.show();
-      return;
-    }
-    const response = await axios.post(
-      `${apiUrl}/guardar_llamar_mas_tarde`,
-      {
-        id: selectedItem.value.id,
-        numero: selectedItem.value.numero,
-        resultado_llamada: selectedItem.value.resultado_seguimiento,
-        comentario_llamar_mas_tarde: comentario_llamar_mas_tarde.value,
-        cotizacion: num_cotizacion.value
-      },
-      {
-        headers: {
-          Accept: "application/json"
-        }
-      }
-    );
-    if (response.status === 200) {
-      // Activar visualización según valor guardado
-      if (resultado_seguimiento.value === 2) {
-        mostrarLlamarMasTarde.value = true;
-      } else {
-        mostrarLlamarMasTarde.value = false;
-      }
-      alert('Comentario guardado exitosamente.');
-      await buscarCotizacion();
-    }
-  } catch (error) {
-    errorMsg.value = error.response?.data?.message || 'Error al guardar.';
-    modalErrorInstance.value.show();
-  }
-};
-
-// Función para guardar comentario de reprogramar llamada
-const guardarReprogramarLlamada = async () => {
-  try {
-    if (!comentario_reprogramar_llamada.value) {
-      errorMsg.value = 'El comentario no debe estar vacío.';
-      modalErrorInstance.value.show();
-      return;
-    }
-    const response = await axios.post(
-      `${apiUrl}/guardar_reprogramar_llamada`,
-      {
-        id: selectedItem.value.id,
-        numero: selectedItem.value.numero,
-        resultado_llamada: selectedItem.value.resultado_seguimiento,
-        comentario_reprogramar_llamada: comentario_reprogramar_llamada.value,
-        cotizacion: num_cotizacion.value
-      },
-      {
-        headers: {
-          Accept: "application/json"
-        }
-      }
-    );
-    if (response.status === 200) {
-      // Activar visualización según valor guardado
-      if (resultado_seguimiento.value === 3) {
-        mostrarReprogramarLlamada.value = true;
-      } else {
-        mostrarReprogramarLlamada.value = false;
-      }
-      alert('Resultado actualizado correctamente.');
-      await buscarCotizacion();
-    }
-  } catch (error) {
-    errorMsg.value = error.response?.data?.message || 'Error al guardar.';
-    modalErrorInstance.value.show();
-  }
-};
-
-// Función para guardar comentario de no confirmado
-const guardarNoConfirmado = async () => {
-  try {
-    if (!comentario_no_confirmado.value) {
-      errorMsg.value = 'El comentario no debe estar vacío.';
-      modalErrorInstance.value.show();
-      return;
-    }
-    const response = await axios.post(
-      `${apiUrl}/guardar_no_confirmado`,
-      {
-        id: selectedItem.value.id,
-        numero: selectedItem.value.numero,
-        resultado_llamada: selectedItem.value.resultado_seguimiento,
-        comentario_no_confirmado: comentario_no_confirmado.value,
-        cotizacion: num_cotizacion.value
-      },
-      {
-        headers: {
-          Accept: "application/json"
-        }
-      }
-    );
-    if (response.status === 200) {
-      // Activar visualización según valor guardado
-      if (resultado_seguimiento.value === 7) {
-        mostrarNoConfirmado.value = true;
-      } else {
-        mostrarNoConfirmado.value = false;
-      }
-      alert('Resultado actualizado correctamente.');
-      await buscarCotizacion();
-    }
-  } catch (error) {
-    errorMsg.value = error.response?.data?.message || 'Error al guardar.';
-    modalErrorInstance.value.show();
-  }
-};
-
-// Función para guardar comentario de presentado en plataforma
-const guardarPresentadoPlataforma = async () => {
-  try {
-    if (!comentario_presentado_plataforma.value) {
-      errorMsg.value = 'El comentario no debe estar vacío.';
-      modalErrorInstance.value.show();
-      return;
-    }
-    const response = await axios.post(
-      `${apiUrl}/guardar_presentado_plataforma`,
-      {
-        id: selectedItem.value.id,
-        numero: selectedItem.value.numero,
-        resultado_llamada: selectedItem.value.resultado_seguimiento,
-        comentario_presentado_plataforma: comentario_presentado_plataforma.value,
-        cotizacion: num_cotizacion.value
-      },
-      {
-        headers: {
-          Accept: "application/json"
-        }
-      }
-    );
-    if (response.status === 200) {
-      // Activar visualización según valor guardado
-      if (resultado_seguimiento.value === 8) {
-        mostrarPresentadoPlataforma.value = true;
-      } else {
-        mostrarPresentadoPlataforma.value = false;
-      }
-      alert('Resultado actualizado correctamente.');
-      await buscarCotizacion();
-    }
-  } catch (error) {
-    errorMsg.value = error.response?.data?.message || 'Error al guardar.';
-    modalErrorInstance.value.show();
   }
 };
 
