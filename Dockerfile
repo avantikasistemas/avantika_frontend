@@ -9,7 +9,7 @@ RUN npm ci
 
 COPY . .
 
-ARG VITE_API_URL=http://130.1.1.7:8000
+ARG VITE_API_URL=http://130.1.1.7:8008
 ENV VITE_API_URL=$VITE_API_URL
 
 RUN npm run build
