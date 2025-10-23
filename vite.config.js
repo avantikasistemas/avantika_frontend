@@ -17,7 +17,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0', // Aceptar conexiones desde cualquier interfaz
-    port: 5173
+    port: 5183
   },
   build: {
     // Asegurarse de que el output sea en dist/
