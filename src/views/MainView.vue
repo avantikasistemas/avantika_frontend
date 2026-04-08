@@ -716,7 +716,8 @@ const consultarCotizacion = async () => {
         {
           numero_cotizacion: numero_cotizacion.value,
           fecha: selectedFechaHora.value,
-          fecha_vencimiento: fechaVenc.value
+          fecha_vencimiento: fechaVenc.value,
+          nueva_fecha_vencimiento: nuevaFechaVenc.value || null
         },
         {
             headers: {
