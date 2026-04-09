@@ -838,8 +838,10 @@ const limpiarCampos = () => {
   items_cotizados.value = '';
 };
 
+const estadosConModal2 = ['COT. ADJUDICACION', 'COT. PRESUPUESTO AÑO VIGENTE', 'COT. PRESUPUESTO PARA EL PROXIMO AÑO'];
+
 const validarModal2 = async () => {
-  if (selectEstados.value === 'COT. ADJUDICACION') {
+  if (estadosConModal2.includes(selectEstados.value)) {
 
     try {
       const response = await axios.post(
