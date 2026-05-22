@@ -47,7 +47,7 @@
         <div>
           <label>NIT:</label>
           <div class="grupo-busqueda">
-            <div class="w-75">
+            <div class="w-75" style="position: relative;">
               <input 
                   type="text" 
                   class="form-control form-control-sm w-100" 
@@ -56,8 +56,14 @@
                   @blur="ocultarLista"
               >
               <ul v-if="mostrarLista && terceros_list.length" class="dropdown-list">
-                  <li v-for="ter in terceros_list" :key="ter.nit" @mousedown="seleccionarTercero(ter)">
-                      {{ ter.nit }} - {{ ter.nombres }} - {{ ter.zona }}
+                  <li
+                    v-for="ter in terceros_list"
+                    :key="ter.nit"
+                    @mousedown="seleccionarTercero(ter)"
+                    :class="{ 'dropdown-item-fan': ter.fan }"
+                  >
+                    <span v-if="ter.fan" class="estrella-fan">★</span>
+                    <span class="dropdown-item-text">{{ ter.nit }} - {{ ter.nombres }} - {{ ter.zona }}</span>
                   </li>
               </ul>
             </div>
@@ -1825,5 +1831,64 @@ button {
 
 .tabla-seguimiento-sm select{
   font-size: 13px !important;
+}
+
+/* ===== Dropdown NIT mejorado ===== */
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  border: 1px solid #b3d0ee;
+  border-radius: 6px;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 16px rgba(39, 120, 191, 0.15);
+}
+
+.dropdown-list li {
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1a3a5c;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f0f4f8;
+}
+
+.dropdown-list li:last-child {
+  border-bottom: none;
+}
+
+.dropdown-list li:hover {
+  background-color: #e3f0ff;
+}
+
+.dropdown-item-fan {
+  background-color: #fffbe6 !important;
+  font-weight: 600;
+  color: #7a5900 !important;
+}
+
+.dropdown-item-fan:hover {
+  background-color: #fff0b3 !important;
+}
+
+.estrella-fan {
+  color: #f5a623;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.dropdown-item-text {
+  white-space: normal;
+  word-break: break-word;
 }
 </style>
